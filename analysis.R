@@ -22,6 +22,10 @@ setwd("C:\\Users\\koda\\Dropbox\\Nutrition\\Julie Jones")
 # mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
 mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
 
+# Fix variable names
+fixthis <- mac0 %>% search_var("8iso") %>% pull(num)
+names(mac0)[fixthis] <- c("isopgf2pgmL", "isopgf2pgmLB")
+
 # From n = 35 subjects (one for control, one for mac)
 n_distinct(mac0$ID)
 
@@ -115,8 +119,9 @@ tidy_output <- function(emm){
   delta <- confint(pairs(emm)) %>% 
     rename(Treatment = contrast, emmean = estimate)
   
-  pval <- c(NA, NA, as_tibble(pairs(emm))$p.value) %>% 
-    finalfit::p_tidy(digits = 4, prefix = NULL) %>%
+  pval <- emm %>% pairs() %>% summary() %>% pull(p.value) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    c("", "", .) %>% 
     as_tibble_col(column_name = "pval")
   
   as.data.frame(emm) %>% 
@@ -125,262 +130,228 @@ tidy_output <- function(emm){
     bind_cols(pval)
 }
 
-tidy_output2 <- function(lmer, emm){
-  as.data.frame(emm) %>% 
-    select(-df) %>% 
-    bind_rows(as.data.frame(confint(pairs(emm, adjust = "none"))) %>% 
-                slice(1, 6) %>% 
-                mutate(Treatment = "mac - control") %>% 
-                rename(emmean = estimate) %>% 
-                select(-df, -contrast) %>% 
-                bind_cols(as.data.frame(pairs(emm, adjust = "none")) %>%
-                            slice(1, 6) %>% 
-                            select(p.value) %>% round(4))) %>% 
-    slice(1:2, 5, 3:4, 6) %>% 
-    bind_cols(c(rep(NA, 5), coef(summary(lmer)) %>% 
-                  as.data.frame() %>% 
-                  slice(n()) %>% 
-                  pull("Pr(>|t|)")) %>% round(5)) %>%
-    rename(intx.p = ...8) %>% 
-    mutate_at(3:6, round, 2)
+show_result <- function(emm, log = FALSE){
+  emm <- emm %>% tidy_output()
+  if(log) emm <- emm %>% mutate_at(2:4, exp)
+  emm <- emm %>% 
+    mutate_at(2:4, round, 2) %>% 
+    print(row.names = FALSE)
 }
 
-# Base model
-x_vars <- c("Treatment", "Group", "Phase")
-RHS <- paste(x_vars, collapse = " + ")
-write_model <- function(y, RHS) as.formula(paste0(y, " ~ ", RHS, "+ (1|ID)"))
+# Base model: adjusts for sequence and phase
+write_model <- function(y, trt_var = "Treatment") as.formula(paste0(y, " ~ ", trt_var, "+ Group + Phase + (1|ID)"))
 
 # Insulin resistance variables
 # Glucose
-glu_mod1 <- write_model(y = "GlucosemgdL", RHS) %>% 
-  lmer(data = mac)
-
-glu_mod1 %>% 
-  emmeans(~ Treatment) %>% 
-  tidy_output() %>% 
-  mutate_at(2:4, round, 2) %>% 
-  print(row.names = FALSE)
-
+glu_mod1 <- write_model(y = "GlucosemgdL") %>% lmer(data = mac)
+glu_mod1 %>% emmeans(~Treatment) %>% show_result()
 ggResidpanel::resid_panel(glu_mod1, plots = "all")
 
 # Insulin (log-transformed)
-ins_mod1 <- write_model(y = "log(InsulinuIUml)", RHS) %>% 
-  lmer(data = mac)
-
-ins_mod1 %>% 
-  emmeans(~ Treatment) %>% 
-  tidy_output() %>% 
-  mutate_at(2:4, exp) %>% 
-  mutate_at(2:4, round, 2) %>% 
-  print(row.names = FALSE)
-
+ins_mod1 <- write_model(y = "log(InsulinuIUml)") %>% lmer(data = mac)
+ins_mod1 %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 ggResidpanel::resid_panel(ins_mod1, plots = "all")
 
 # HOMA-IR (log-transformed)
-homa_mod1 <- write_model(y = "log(HOMA_IR)", RHS) %>% 
-  lmer(data = mac)
-
-homa_mod1 %>% 
-  emmeans(~ Treatment) %>% 
-  tidy_output() %>% 
-  mutate_at(2:4, exp) %>% 
-  mutate_at(2:4, round, 2) %>% 
-  print(row.names = FALSE)
-
+homa_mod1 <- write_model(y = "log(HOMA_IR)") %>% lmer(data = mac)
+homa_mod1 %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 ggResidpanel::resid_panel(homa_mod1, plots="all")
-
-# Inflammatory/oxidative variables
-
 
 # Checking for interactions -----------------------------------------------
 
-# Interaction with baseline BMI, dichotomous
-# Glucose
-glu_mod2 <- lmer(GlucosemgdL ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac)
-summary(glu_mod2)
-glu_emm <- emmeans(glu_mod2, ~ Treatment + BaseBMI)
-tidy_output2(glu_mod2, glu_emm)
+tidy_output2 <- function(emm, lmer){
+  
+  flevels <- summary(emm) %>% select(2) %>% distinct()
+  
+  pval <- summary(pairs(emm, adjust = "none")) %>% 
+    pull(p.value) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    as_tibble_col(column_name = "pval")
+  
+  intxp <- coef(summary(lmer)) %>% as_tibble() %>%
+    slice(n()) %>% pull(-1) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    c(rep("", 5), .) %>% 
+    as_tibble_col(column_name = "intx.P")
+  
+  delta <- confint(pairs(emm, adjust = "none")) %>% 
+    mutate(Treatment = "Mac - Ctrl") %>% 
+    rename(emmean = estimate) %>% 
+    bind_cols(pval) %>% slice(1, 6) %>% 
+    bind_cols(flevels)
+  
+  summary(emm) %>% 
+    mutate(pval = "") %>% 
+    bind_rows(delta) %>% 
+    select(-contrast, -df, -SE) %>% 
+    arrange(.[2]) %>%
+    bind_cols(intxp)
+}
 
-# Insulin
-ins_mod2 <- lmer(log(InsulinuIUml) ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac)
-summary(ins_mod2)
-ins_emm <- emmeans(ins_mod2, ~ Treatment + BaseBMI)
-tidy_output2(ins_mod2, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE)
-
-# HOMA-IR
-homa_mod2 <- lmer(log(HOMA_IR) ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac)
-summary(homa_mod2)
-homa_emm <- emmeans(homa_mod2, ~ Treatment + BaseBMI)
-tidy_output2(homa_mod2, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE)
-
-# Interaction with baseline WC, dichotomous
-# Glucose
-glu_mod3 <- lmer(GlucosemgdL ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac)
-summary(glu_mod3)
-glu_emm <- emmeans(glu_mod3, ~ Treatment + BaseWC)
-tidy_output2(glu_mod3, glu_emm) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# Insulin
-ins_mod3 <- lmer(log(InsulinuIUml) ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac)
-summary(ins_mod3)
-ins_emm <- emmeans(ins_mod3, ~ Treatment + BaseWC)
-tidy_output2(ins_mod3, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# HOMA-IR
-homa_mod3 <- lmer(log(HOMA_IR) ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac)
-summary(homa_mod3)
-homa_emm <- emmeans(homa_mod3, ~ Treatment + BaseWC)
-tidy_output2(homa_mod3, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# Interaction with baseline % body fat, dichotomous
-# Glucose
-glu_mod4 <- lmer(GlucosemgdL ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac)
-summary(glu_mod4)
-glu_emm <- emmeans(glu_mod4, ~ Treatment + BaseBF)
-tidy_output2(glu_mod4, glu_emm) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# Insulin
-ins_mod4 <- lmer(log(InsulinuIUml) ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac)
-summary(ins_mod4)
-ins_emm <- emmeans(ins_mod4, ~ Treatment + BaseBF)
-tidy_output2(ins_mod4, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# HOMA-IR
-homa_mod4 <- lmer(log(HOMA_IR) ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac)
-summary(homa_mod4)
-homa_emm <- emmeans(homa_mod4, ~ Treatment + BaseBF)
-tidy_output2(homa_mod4, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
-
-# Subgroup analysis, women only -------------------------------------------
+show_result2 <- function(emm, lmer, log = FALSE){
+  emm <- emm %>% tidy_output2(lmer)
+  if(log) emm <- emm %>% mutate_at(3:5, exp)
+  emm %>% 
+    mutate_at(3:5, round, 2) %>% 
+    print(row.names = FALSE)
+}
 
 # Interaction with baseline BMI, dichotomous
 # Glucose
-glu_mod2 <- lmer(GlucosemgdL ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac_fem)
-summary(glu_mod2)
-glu_emm <- emmeans(glu_mod2, ~ Treatment + BaseBMI)
-tidy_output2(glu_mod2, glu_emm) %>% 
-  select(-SE)
+glu_mod2 <- write_model("GlucosemgdL", "Treatment * BaseBMI") %>% lmer(data = mac)
+glu_mod2 %>% 
+  emmeans(~ Treatment + BaseBMI) %>% 
+  show_result2(glu_mod2)
 
 # Insulin
-ins_mod2 <- lmer(log(InsulinuIUml) ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac_fem)
-summary(ins_mod2)
-ins_emm <- emmeans(ins_mod2, ~ Treatment + BaseBMI)
-tidy_output2(ins_mod2, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE)
+ins_mod2 <- write_model("log(InsulinuIUml)", "Treatment * BaseBMI") %>% lmer(data = mac)
+ins_mod2 %>% 
+  emmeans(~ Treatment + BaseBMI) %>% 
+  show_result2(ins_mod2, log = TRUE)
 
 # HOMA-IR
-homa_mod2 <- lmer(log(HOMA_IR) ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac_fem)
-summary(homa_mod2)
-homa_emm <- emmeans(homa_mod2, ~ Treatment + BaseBMI)
-tidy_output2(homa_mod2, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE)
+homa_mod2 <- write_model("log(HOMA_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
+homa_mod2 %>% 
+  emmeans(~ Treatment + BaseBMI) %>% 
+  show_result2(homa_mod2, log = TRUE)
 
 # Interaction with baseline WC, dichotomous
 # Glucose
-glu_mod3 <- lmer(GlucosemgdL ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac_fem)
-summary(glu_mod3)
-glu_emm <- emmeans(glu_mod3, ~ Treatment + BaseWC)
-tidy_output2(glu_mod3, glu_emm) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+glu_mod3 <- write_model("GlucosemgdL", "Treatment * BaseWC") %>% lmer(data = mac)
+glu_mod3 %>% 
+  emmeans(~ Treatment + BaseWC) %>% 
+  show_result2(glu_mod3)
 
 # Insulin
-ins_mod3 <- lmer(log(InsulinuIUml) ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac_fem)
-summary(ins_mod3)
-ins_emm <- emmeans(ins_mod3, ~ Treatment + BaseWC)
-tidy_output2(ins_mod3, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+ins_mod3 <- write_model("log(InsulinuIUml)", "Treatment * BaseWC") %>% lmer(data = mac)
+ins_mod3 %>% 
+  emmeans(~ Treatment + BaseWC) %>% 
+  show_result2(ins_mod3, log = TRUE)
 
 # HOMA-IR
-homa_mod3 <- lmer(log(HOMA_IR) ~ Treatment * BaseWC + Group + Phase + (1|ID), data = mac_fem)
-summary(homa_mod3)
-homa_emm <- emmeans(homa_mod3, ~ Treatment + BaseWC)
-tidy_output2(homa_mod3, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+homa_mod3 <- write_model("log(HOMA_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
+homa_mod3 %>% 
+  emmeans(~ Treatment + BaseWC) %>% 
+  show_result2(homa_mod3, log = TRUE)
 
 # Interaction with baseline % body fat, dichotomous
 # Glucose
-glu_mod4 <- lmer(GlucosemgdL ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac_fem)
-summary(glu_mod4)
-glu_emm <- emmeans(glu_mod4, ~ Treatment + BaseBF)
-tidy_output2(glu_mod4, glu_emm) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+glu_mod4 <- write_model("GlucosemgdL", "Treatment * BaseBF") %>% lmer(data = mac)
+glu_mod4 %>% 
+  emmeans(~ Treatment + BaseBF) %>% 
+  show_result2(glu_mod4)
 
 # Insulin
-ins_mod4 <- lmer(log(InsulinuIUml) ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac_fem)
-summary(ins_mod4)
-ins_emm <- emmeans(ins_mod4, ~ Treatment + BaseBF)
-tidy_output2(ins_mod4, ins_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+ins_mod4 <- write_model("log(InsulinuIUml)", "Treatment * BaseBF") %>% lmer(data = mac)
+ins_mod4 %>% 
+  emmeans(~ Treatment + BaseBF) %>% 
+  show_result2(ins_mod4, log = TRUE)
 
 # HOMA-IR
-homa_mod4 <- lmer(log(HOMA_IR) ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac_fem)
-summary(homa_mod4)
-homa_emm <- emmeans(homa_mod4, ~ Treatment + BaseBF)
-tidy_output2(homa_mod4, homa_emm) %>% 
-  mutate_at(3:6, exp) %>% 
-  mutate_at(3:6, round, 2) %>% 
-  select(-SE) %>% print(row.names = FALSE)
+homa_mod4 <- write_model("log(HOMA_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
+homa_mod4 %>% 
+  emmeans(~ Treatment + BaseBF) %>% 
+  show_result2(homa_mod4, log = TRUE)
 
 # Checking previous results -----------------------------------------------
 
 # Lipids
-tc_mod1 <- lmer(CholmgdL ~ Treatment + Group + Phase + (1|ID), data = mac)
-summary(tc_mod1)
-homa_emm <- emmeans(tc_mod1, ~ Treatment)
-tidy_output(homa_emm)
+lipid_results <- function(var){
+  write_model(var) %>% 
+  lmer(data = mac) %>% 
+  suppressWarnings() %>% 
+  emmeans(~ Treatment) %>% 
+  tidy_output() %>% 
+  mutate_at(2:4, round, 2)
+}
 
-ldl_mod1 <- lmer(LDLmgdL ~ Treatment + Group + Phase + (1|ID), data = mac)
-summary(ldl_mod1)
-ldl_emm <- emmeans(ldl_mod1, ~ Treatment)
-tidy_output(ldl_emm)
-
-tc_mod2 <- lmer(CholmgdL ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac)
-summary(tc_mod2)
-tc_emm <- emmeans(tc_mod2, ~ Treatment + BaseBMI)
-tidy_output2(tc_mod2, tc_emm)
-
-tc_mod3 <- lmer(CholmgdL ~ Treatment * BaseBMI + Group + Phase + (1|ID), data = mac_fem)
-summary(tc_mod3)
-tc_emm <- emmeans(tc_mod3, ~ Treatment + BaseBMI)
-tidy_output2(tc_mod3, tc_emm)
-
-tc_mod4 <- lmer(LDLmgdL ~ Treatment * BaseBF + Group + Phase + (1|ID), data = mac_fem)
-summary(tc_mod4)
-tc_emm <- emmeans(tc_mod4, ~ Treatment + BaseBF)
-tidy_output2(tc_mod4, tc_emm)
+yvars <- c("CholmgdL", "LDLmgdL")
+all_lipid_results <- yvars %>% map(lipid_results)
+names(all_lipid_results) <- yvars
+print(all_lipid_results, row.names = FALSE)
 
 # Inflammatory/oxidative variables ----------------------------------------
 
 # Variable names
-c("crp", "eselec", "il6", "tnf", "icam", "vcam", "8iso", "mda") %>% 
+c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
   map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE))
+
+# CRP
+crp_mod1 <- write_model(y = "log(CRPmgdL)") %>% lmer(data = mac)
+crp_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(crp_mod1, plots = "all")
+
+# E-selectin
+esel_mod1 <- write_model(y = "log(ESelectinngdL)") %>% lmer(data = mac)
+esel_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(esel_mod1, plots = "all")
+
+# IL-6
+il6_mod1 <- write_model(y = "log(IL6pgmL)") %>% lmer(data = mac)
+il6_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(il6_mod1, plots = "all")
+
+# TNF-a
+tnf_mod1 <- write_model(y = "log(TNFapgmL)") %>% lmer(data = mac)
+tnf_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(tnf_mod1, plots = "all")
+
+# ICAM
+icam_mod1 <- write_model(y = "log(sICAM1pgmL)") %>% lmer(data = mac)
+icam_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(icam_mod1, plots = "all")
+
+# VCAM
+vcam_mod1 <- write_model(y = "log(sVCAm1pgmL)") %>% lmer(data = mac)
+vcam_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(vcam_mod1, plots = "all")
+
+# 8-iso-PGF
+pgf_mod1 <- write_model(y = "log(isopgf2pgmL)") %>% lmer(data = mac)
+pgf_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(pgf_mod1, plots = "all")
+
+# MDA
+mda_mod1 <- write_model(y = "log(MDAnmolmL)") %>% lmer(data = mac)
+mda_mod1 %>% 
+  emmeans(~ Treatment) %>% 
+  show_result(log = TRUE)
+
+ggResidpanel::resid_panel(mda_mod1, plots = "all")
+
+# All together
+inflam_results <- function(var){
+  write_model(y = var) %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings() %>% 
+    emmeans(~ Treatment) %>% 
+    show_result(log = TRUE)
+}
+
+yvars <- c("log(CRPmgdL)", "log(ESelectinngdL)", "log(IL6pgmL)", "log(TNFapgmL)", 
+           "log(sICAM1pgmL)", "log(sVCAm1pgmL)", "log(isopgf2pgmL)", "log(MDAnmolmL)")
+all_inflam_results <- yvars %>% map(inflam_results)
+names(all_inflam_results) <- yvars
+
+print(all_inflam_results, row.names = FALSE)
