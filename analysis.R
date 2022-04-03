@@ -276,6 +276,38 @@ print(all_lipid_results, row.names = FALSE)
 c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
   map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE))
 
+inflam_vars <- c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
+  map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE)) %>% 
+  sapply("[[", 1)
+
+inflamB_vars <- paste0(inflam_vars, "B")
+
+# Descriptive means
+# Data including baseline values as obs
+mac_with_base <- mac %>%
+  filter(Phase == 1) %>% 
+  mutate(Treatment = "Baseline") %>% 
+  select(ID, Treatment, all_of(inflamB_vars)) %>% 
+  rename_with(function(x) substr(x, 1, nchar(x) - 1), all_of(inflamB_vars)) %>% 
+  bind_rows(select(mac, ID, Treatment, all_of(inflam_vars)))
+
+# Mean (SD) by treatment
+options(pillar.sigfig = 4)
+mac_with_base %>% 
+  pivot_longer(any_of(inflam_vars), names_to = "var", values_to = "value") %>% 
+  mutate(var = factor(var, levels = inflam_vars)) %>% 
+  group_by(var, Treatment) %>% 
+  summarize(mean = mean(value), sd = sd(value)) %>% 
+  filter(!is.na(mean))
+
+# Mean (SD) by sequence and treatment
+Mean <- function(x) mean(x, na.rm = TRUE)
+SD <- function(x) sd(x, na.rm = TRUE)
+tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+          Heading() * Group * Heading() * Treatment, data = mac) %>% 
+  suppressWarnings()
+
+
 # CRP
 crp_mod1 <- write_model(y = "log(CRPmgdL)") %>% lmer(data = mac)
 crp_mod1 %>% 

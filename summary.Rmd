@@ -59,8 +59,7 @@ mac_fem <- mac %>%
 
 ##  Datasets
 
-* File name: MAC Endpoint data with baseline values 102121.sav
-
+* File name: `MAC Endpoint data with baseline values 102121.sav`
 * Data are from a 2 x 2 crossover design (AB/BA) with control/mac treatments
 * Includes *n* = `r nrow(mac0)` observations from `r n_distinct(mac0$ID)` subjects
 * There are `r ncol(mac0)` variables including:
@@ -80,3 +79,56 @@ mac_fem <- mac %>%
   * Insulin resistance
   * Inflammatory/oxidative markers
 
+## Descriptive analysis on inflammatory/oxidative markers
+
+* Variables included:
+  * `CRPmgdL`
+  * `ESelectinngdL`
+  * `IL6pgmL`
+  * `TNFapgmL`
+  * `sICAM1pgmL`
+  * `sVCAm1pgmL`
+  * `isopgf2pgmL`
+  * `MDAnmolmL`
+
+### Mean/SD by treatment
+
+```{r echo = FALSE}
+# Variable names
+inflam_vars <- c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
+  map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE)) %>% 
+  sapply("[[", 1)
+
+inflamB_vars <- paste0(inflam_vars, "B")
+
+# Descriptive means
+# Data including baseline values as obs
+mac_with_base <- mac %>%
+  filter(Phase == 1) %>% 
+  mutate(Treatment = "Baseline") %>% 
+  select(ID, Treatment, all_of(inflamB_vars)) %>% 
+  rename_with(function(x) substr(x, 1, nchar(x) - 1), all_of(inflamB_vars)) %>% 
+  bind_rows(select(mac, ID, Treatment, all_of(inflam_vars)))
+
+# Mean (SD) by treatment
+options(pillar.sigfig = 4)
+mac_with_base %>% 
+  pivot_longer(any_of(inflam_vars), names_to = "var", values_to = "value") %>% 
+  mutate(var = factor(var, levels = inflam_vars)) %>% 
+  group_by(var, Treatment) %>% 
+  summarize(mean = mean(value), sd = sd(value)) %>% 
+  mutate_at(vars(mean, sd), round, 2) %>% 
+  knitr::kable()
+```
+
+### Mean/SD by sequence group and treatment
+
+
+```{r echo = FALSE}
+# Mean (SD) by sequence and treatment
+Mean <- function(x) mean(x, na.rm = TRUE)
+SD <- function(x) sd(x, na.rm = TRUE)
+tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+          Heading() * Group * Heading() * Treatment, data = mac) %>% 
+  suppressWarnings()
+```
