@@ -1,0 +1,82 @@
+---
+title: "MAC study"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Setup -------------------------------------------------------------------
+
+# Required packages
+pacs <- c("tidyverse", "haven", "tables", "lme4", "lmerTest", "emmeans")
+sapply(pacs, require, character.only = TRUE)
+
+# Function to search variables
+search_var <- function(df, name) {
+  data.frame(num=grep(name, names(df), ignore.case=TRUE),
+             var=grep(name, names(df), ignore.case=TRUE, value=TRUE))
+}
+
+# Path to data file
+setwd("C:\\Users\\keiji\\Dropbox\\Nutrition\\Julie Jones")
+
+# Read data ---------------------------------------------------------------
+
+# Read data, n obs = 70
+# mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
+mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
+
+# Fix variable names
+fixthis <- mac0 %>% search_var("8iso") %>% pull(num)
+names(mac0)[fixthis] <- c("isopgf2pgmL", "isopgf2pgmLB")
+
+# Data including all subjects
+mac <- mac0 %>% 
+  mutate(ID = factor(ID),
+         Treatment = factor(Treatment, labels = c("Control", "Mac")),
+         Treatment = relevel(Treatment, ref = "Mac"),
+         Gender = factor(Gender),
+         Group = factor(Group, labels = c("Mac-Control", "Control-Mac")),
+         Phase = factor(Phase),
+         BaseBMI = ifelse(BMIB >= 30, 1, 0),
+         BaseBMI = factor(BaseBMI, labels = c("<30", ">=30")),
+         BaseWC = ifelse(WCbaseline >= 108, 1, 0),
+         BaseWC = factor(BaseWC, labels = c("<108", ">=108")),
+         BaseBF = ifelse(PBFPercentBodyFat >= 43, 1, 0),
+         BaseBF = factor(BaseBF, labels = c("<43", ">=43")))
+
+# Female only (for sub-group analysis)
+# Changing cut-off values for WC and body fat
+mac_fem <- mac %>% 
+  filter(Gender == "F") %>% 
+  mutate(BaseWC = ifelse(WCbaseline >= 100, 1, 0),
+         BaseWC = factor(BaseWC, labels = c("<100", ">=100")),
+         BaseBF = ifelse(PBFPercentBodyFat >= 44, 1, 0),
+         BaseBF = factor(BaseBF, labels = c("<44", ">=44")))
+
+```
+
+##  Datasets
+
+* File name: MAC Endpoint data with baseline values 102121.sav
+
+* Data are from a 2 x 2 crossover design (AB/BA) with control/mac treatments
+* Includes *n* = `r nrow(mac0)` observations from `r n_distinct(mac0$ID)` subjects
+* There are `r ncol(mac0)` variables including:
+  * `ID`
+  * Study design variables:
+    * Sequence: `Group`
+    * `Phase`  
+    * `Visit`
+    * `Treatment`
+  * Demographics & body measurements
+    * `Age`
+    * `Height`
+    * `Weight`
+    * `BMI`
+    * Waist circumference: `WC`
+  * Blood lipids
+  * Insulin resistance
+  * Inflammatory/oxidative markers
+
