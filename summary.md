@@ -38,32 +38,24 @@ MAC study
 
 ### Mean/SD by treatment
 
-| var           | Treatment |   mean |     sd |
-|:--------------|:----------|-------:|-------:|
-| CRPmgdL       | Baseline  |   5.68 |   5.10 |
-| CRPmgdL       | Control   |   6.84 |   6.86 |
-| CRPmgdL       | Mac       |   6.49 |   6.97 |
-| ESelectinngdL | Baseline  |  38.49 |  17.35 |
-| ESelectinngdL | Control   |  39.91 |  21.50 |
-| ESelectinngdL | Mac       |  38.67 |  17.26 |
-| IL6pgmL       | Baseline  |   0.56 |   0.33 |
-| IL6pgmL       | Control   |   0.57 |   0.33 |
-| IL6pgmL       | Mac       |   0.54 |   0.24 |
-| TNFapgmL      | Baseline  |   1.09 |   0.39 |
-| TNFapgmL      | Control   |   1.04 |   0.33 |
-| TNFapgmL      | Mac       |   1.03 |   0.36 |
-| sICAM1pgmL    | Baseline  | 415.37 | 119.66 |
-| sICAM1pgmL    | Control   | 430.07 | 115.48 |
-| sICAM1pgmL    | Mac       | 426.82 | 110.24 |
-| sVCAm1pgmL    | Baseline  | 467.83 | 162.66 |
-| sVCAm1pgmL    | Control   | 480.02 | 147.22 |
-| sVCAm1pgmL    | Mac       | 476.86 | 147.55 |
-| isopgf2pgmL   | Baseline  | 629.86 | 154.47 |
-| isopgf2pgmL   | Control   | 642.39 | 139.09 |
-| isopgf2pgmL   | Mac       | 671.19 | 163.09 |
-| MDAnmolmL     | Baseline  |   2.44 |   1.05 |
-| MDAnmolmL     | Control   |   2.49 |   1.05 |
-| MDAnmolmL     | Mac       |   2.36 |   1.21 |
+    ##                                            
+    ##                     Baseline Control Mac   
+    ##  CRPmgdL       Mean   5.68     6.84    6.49
+    ##                SD     5.10     6.86    6.97
+    ##  ESelectinngdL Mean  38.49    39.91   38.67
+    ##                SD    17.35    21.50   17.26
+    ##  IL6pgmL       Mean   0.56     0.57    0.54
+    ##                SD     0.33     0.33    0.24
+    ##  TNFapgmL      Mean   1.09     1.04    1.03
+    ##                SD     0.39     0.33    0.36
+    ##  sICAM1pgmL    Mean 415.37   430.07  426.82
+    ##                SD   119.66   115.48  110.24
+    ##  sVCAm1pgmL    Mean 467.83   480.02  476.86
+    ##                SD   162.66   147.22  147.55
+    ##  isopgf2pgmL   Mean 629.86   642.39  671.19
+    ##                SD   154.47   139.09  163.09
+    ##  MDAnmolmL     Mean   2.44     2.49    2.36
+    ##                SD     1.05     1.05    1.21
 
 ### Mean/SD by sequence group and treatment
 
