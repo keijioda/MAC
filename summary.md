@@ -38,9 +38,6 @@ MAC study
 
 ### Mean/SD by treatment
 
-    ## `summarise()` has grouped output by 'var'. You can override using the `.groups`
-    ## argument.
-
 | var           | Treatment |   mean |     sd |
 |:--------------|:----------|-------:|-------:|
 | CRPmgdL       | Baseline  |   5.68 |   5.10 |
@@ -89,3 +86,69 @@ MAC study
     ##                SD   163.13      123.18  166.62      158.07 
     ##  MDAnmolmL     Mean   2.36        2.34    2.36        2.66 
     ##                SD     1.31        1.03    1.13        1.07
+
+## Mixed model analysis on on inflammatory/oxidative markers
+
+-   Each of inflammatory/oxidative variables was log-transformed and
+    used as a dependent variable in the following mixed model.
+-   The mixed model included:
+    -   treatment(mac/control), sequence groups (AB/BA), and phase as
+        fixed-effects
+    -   subjects as random-effects
+-   Marginal means were estimated for both treatments (with 95% CI)
+    adjusted for sequence and phase, and then back-transformed into the
+    original scale.
+-   The last row of `Mac - Control` actually refers to the **ratio** of
+    treatment means (mac/control) after the back-transformation.
+    -   None of these variables showed a significant difference between
+        the two treatments.
+
+<!-- -->
+
+    ## $`log(CRPmgdL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac   4.26     3.18     5.71       
+    ##        Control   4.84     3.62     6.49       
+    ##  Mac - Control   0.88     0.70     1.11 0.2632
+    ## 
+    ## $`log(ESelectinngdL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac  35.27    30.26    41.11       
+    ##        Control  35.74    30.67    41.66       
+    ##  Mac - Control   0.99     0.93     1.04 0.6215
+    ## 
+    ## $`log(IL6pgmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac   0.48     0.40     0.58       
+    ##        Control   0.49     0.40     0.59       
+    ##  Mac - Control   1.00     0.84     1.19 0.9614
+    ## 
+    ## $`log(TNFapgmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac   0.98     0.89     1.09       
+    ##        Control   1.00     0.91     1.11       
+    ##  Mac - Control   0.98     0.92     1.05 0.5777
+    ## 
+    ## $`log(sICAM1pgmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac 413.63   378.94   451.50       
+    ##        Control 415.91   381.03   453.99       
+    ##  Mac - Control   0.99     0.95     1.04 0.8189
+    ## 
+    ## $`log(sVCAm1pgmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac 456.00   411.69   505.07       
+    ##        Control 459.30   414.67   508.73       
+    ##  Mac - Control   0.99     0.95     1.04 0.7387
+    ## 
+    ## $`log(isopgf2pgmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac 649.78   595.56   708.94       
+    ##        Control 626.20   573.95   683.21       
+    ##  Mac - Control   1.04     0.93     1.16 0.4896
+    ## 
+    ## $`log(MDAnmolmL)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac   2.09     1.78     2.46       
+    ##        Control   2.28     1.94     2.68       
+    ##  Mac - Control   0.92     0.82     1.03 0.1311

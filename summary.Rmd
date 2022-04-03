@@ -93,7 +93,7 @@ mac_fem <- mac %>%
 
 ### Mean/SD by treatment
 
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE }
 # Variable names
 inflam_vars <- c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
   map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE)) %>% 
@@ -131,4 +131,59 @@ SD <- function(x) sd(x, na.rm = TRUE)
 tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Group * Heading() * Treatment, data = mac) %>% 
   suppressWarnings()
+```
+
+## Mixed model analysis on on inflammatory/oxidative markers
+
+* Each of inflammatory/oxidative variables was log-transformed and used as a dependent variable in the following mixed model.
+* The mixed model included:
+  * treatment(mac/control), sequence groups (AB/BA), and phase as fixed-effects
+  * subjects as random-effects
+* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant difference between the two treatments.
+
+```{r echo = FALSE}
+tidy_output <- function(emm){
+  
+  delta <- confint(pairs(emm)) %>% 
+    rename(Treatment = contrast, emmean = estimate)
+  
+  pval <- emm %>% pairs() %>% summary() %>% pull(p.value) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    c("", "", .) %>% 
+    as_tibble_col(column_name = "pval")
+  
+  as.data.frame(emm) %>% 
+    bind_rows(delta) %>% 
+    select(-df, -SE) %>% 
+    bind_cols(pval)
+}
+
+show_result <- function(emm, log = FALSE){
+  emm <- emm %>% tidy_output()
+  if(log) emm <- emm %>% mutate_at(2:4, exp)
+  emm <- emm %>% 
+    mutate_at(2:4, round, 2)
+}
+
+# Base model: adjusts for sequence and phase
+write_model <- function(y, trt_var = "Treatment") as.formula(paste0(y, " ~ ", trt_var, "+ Group + Phase + (1|ID)"))
+```
+
+```{r echo = FALSE}
+# All together
+inflam_results <- function(var){
+  write_model(y = var) %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings() %>% 
+    emmeans(~ Treatment) %>% 
+    show_result(log = TRUE)
+}
+
+yvars <- c("log(CRPmgdL)", "log(ESelectinngdL)", "log(IL6pgmL)", "log(TNFapgmL)", 
+           "log(sICAM1pgmL)", "log(sVCAm1pgmL)", "log(isopgf2pgmL)", "log(MDAnmolmL)")
+all_inflam_results <- yvars %>% map(inflam_results)
+names(all_inflam_results) <- yvars
+print(all_inflam_results, row.names = FALSE)
 ```
