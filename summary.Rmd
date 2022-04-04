@@ -165,9 +165,7 @@ show_result <- function(emm, log = FALSE){
 
 # Base model: adjusts for sequence and phase
 write_model <- function(y, trt_var = "Treatment") as.formula(paste0(y, " ~ ", trt_var, "+ Group + Phase + (1|ID)"))
-```
 
-```{r echo = FALSE}
 # All together
 inflam_results <- function(var){
   write_model(y = var) %>% 
@@ -182,4 +180,109 @@ yvars <- c("log(CRPmgdL)", "log(ESelectinngdL)", "log(IL6pgmL)", "log(TNFapgmL)"
 all_inflam_results <- yvars %>% map(inflam_results)
 names(all_inflam_results) <- yvars
 print(all_inflam_results, row.names = FALSE)
+```
+
+### Examining the interaction with baseline BMI
+
+* To examine if the effect of mac treatment may be different depending on baseline BMI, a dichotomous BMI variable (<30 and >=30) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant interaction with baseline BMI, indicating that the effect of mac treatment is not significantly different between BMI <30 and >=30.
+
+```{r echo = FALSE}
+tidy_output2 <- function(emm, lmer){
+  
+  flevels <- summary(emm) %>% select(2) %>% distinct()
+  
+  pval <- summary(pairs(emm, adjust = "none")) %>% 
+    pull(p.value) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    as_tibble_col(column_name = "pval")
+  
+  intxp <- coef(summary(lmer)) %>% as_tibble() %>%
+    slice(n()) %>% pull(-1) %>% 
+    finalfit::p_tidy(digits = 4, prefix = NULL) %>% 
+    c(rep("", 5), .) %>% 
+    as_tibble_col(column_name = "intx.P")
+  
+  delta <- confint(pairs(emm, adjust = "none")) %>% 
+    mutate(Treatment = "Mac - Ctrl") %>% 
+    rename(emmean = estimate) %>% 
+    bind_cols(pval) %>% slice(1, 6) %>% 
+    bind_cols(flevels)
+  
+  summary(emm) %>% 
+    mutate(pval = "") %>% 
+    bind_rows(delta) %>% 
+    select(-contrast, -df, -SE) %>% 
+    arrange(.[2]) %>%
+    bind_cols(intxp)
+}
+
+show_result2 <- function(emm, lmer, log = FALSE){
+  emm <- emm %>% tidy_output2(lmer)
+  if(log) emm <- emm %>% mutate_at(3:5, exp)
+  emm %>% 
+    mutate_at(3:5, round, 2) 
+    # print(row.names = FALSE)
+}
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseBMI") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseBMI) %>% 
+    show_result2(mod, log = TRUE)
+}
+
+all_inflam_results2 <- yvars %>% map(inflam_results)
+names(all_inflam_results2) <- yvars
+print(all_inflam_results2, row.names = FALSE)
+```
+
+### Examining the interaction with baseline WC
+
+* To examine if the effect of mac treatment may be different depending on baseline waist circumference (WC), a dichotomous WC variable (<108 and >=108) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline WC adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant interaction with baseline WC, indicating that the effect of mac treatment is not significantly different between WC <108 and >=108.
+
+```{r echo = FALSE}
+# Interaction with baseline WC, dichotomous
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseWC") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseWC) %>% 
+    show_result2(mod, log = TRUE)
+}
+all_inflam_results3 <- yvars %>% map(inflam_results)
+names(all_inflam_results3) <- yvars
+print(all_inflam_results3, row.names = FALSE)
+```
+
+### Examining the interaction with baseline % body fat
+
+* To examine if the effect of mac treatment may be different depending on baseline % body fat (BF), a dichotomous BF variable (<43 and >=43) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline BF adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant interaction with baseline BF, indicating that the effect of mac treatment is not significantly different between WC <43 and >=43.
+
+```{r echo = FALSE}
+# Interaction with baseline WC, dichotomous
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseBF") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseBF) %>% 
+    show_result2(mod, log = TRUE)
+}
+all_inflam_results4 <- yvars %>% map(inflam_results)
+names(all_inflam_results4) <- yvars
+print(all_inflam_results4, row.names = FALSE)
 ```

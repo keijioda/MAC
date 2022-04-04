@@ -144,3 +144,270 @@ MAC study
     ##            Mac   2.09     1.78     2.46       
     ##        Control   2.28     1.94     2.68       
     ##  Mac - Control   0.92     0.82     1.03 0.1311
+
+### Examining the interaction with baseline BMI
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline BMI, a dichotomous BMI variable (\<30 and >=30) was
+    added into the mixed model, along with its interaction with
+    treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline BMI adjusted for sequence and phase, and then
+    back-transformed into the original scale.
+-   The last row of `Mac - Control` actually refers to the **ratio** of
+    treatment means (mac/control) after the back-transformation.
+    -   None of these variables showed a significant interaction with
+        baseline BMI, indicating that the effect of mac treatment is not
+        significantly different between BMI \<30 and >=30.
+
+<!-- -->
+
+    ## $`log(CRPmgdL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30   2.82     1.98     4.02              
+    ##     Control     <30   3.14     2.20     4.47              
+    ##  Mac - Ctrl     <30   0.90     0.65     1.24 0.5125       
+    ##         Mac    >=30   6.58     4.58     9.46              
+    ##     Control    >=30   7.66     5.33    11.01              
+    ##  Mac - Ctrl    >=30   0.86     0.62     1.20 0.3621 0.8429
+    ## 
+    ## $`log(ESelectinngdL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30  30.70    24.98    37.72              
+    ##     Control     <30  31.23    25.41    38.37              
+    ##  Mac - Ctrl     <30   0.98     0.91     1.06 0.6559       
+    ##         Mac    >=30  40.82    33.04    50.44              
+    ##     Control    >=30  41.20    33.35    50.91              
+    ##  Mac - Ctrl    >=30   0.99     0.92     1.07 0.8114 0.8885
+    ## 
+    ## $`log(IL6pgmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30   0.43     0.33     0.56              
+    ##     Control     <30   0.45     0.34     0.58              
+    ##  Mac - Ctrl     <30   0.97     0.75     1.24 0.7949       
+    ##         Mac    >=30   0.55     0.42     0.71              
+    ##     Control    >=30   0.53     0.41     0.70              
+    ##  Mac - Ctrl    >=30   1.03     0.79     1.32 0.8426 0.7467
+    ## 
+    ## $`log(TNFapgmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30   0.93     0.81     1.07              
+    ##     Control     <30   0.94     0.82     1.08              
+    ##  Mac - Ctrl     <30   0.99     0.90     1.08 0.8038       
+    ##         Mac    >=30   1.05     0.91     1.21              
+    ##     Control    >=30   1.07     0.93     1.24              
+    ##  Mac - Ctrl    >=30   0.98     0.89     1.07 0.5959 0.8361
+    ## 
+    ## $`log(sICAM1pgmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30 382.74   339.74   431.18              
+    ##     Control     <30 391.01   347.08   440.50              
+    ##  Mac - Ctrl     <30   0.98     0.91     1.05 0.5298       
+    ##         Mac    >=30 448.88   397.19   507.30              
+    ##     Control    >=30 443.87   392.76   501.64              
+    ##  Mac - Ctrl    >=30   1.01     0.94     1.09 0.7476 0.5048
+    ## 
+    ## $`log(sVCAm1pgmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30 413.06   359.54   474.54              
+    ##     Control     <30 430.08   374.36   494.09              
+    ##  Mac - Ctrl     <30   0.96     0.90     1.02 0.1780       
+    ##         Mac    >=30 506.08   438.89   583.55              
+    ##     Control    >=30 492.25   426.90   567.61              
+    ##  Mac - Ctrl    >=30   1.03     0.97     1.09 0.3642 0.1156
+    ## 
+    ## $`log(isopgf2pgmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30 625.43   553.15   707.16              
+    ##     Control     <30 613.28   542.40   693.42              
+    ##  Mac - Ctrl     <30   1.02     0.88     1.19 0.7952       
+    ##         Mac    >=30 676.46   596.33   767.36              
+    ##     Control    >=30 640.11   564.29   726.12              
+    ##  Mac - Ctrl    >=30   1.06     0.90     1.24 0.4783 0.7429
+    ## 
+    ## $`log(MDAnmolmL)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30   1.90     1.51     2.37              
+    ##     Control     <30   2.10     1.67     2.62              
+    ##  Mac - Ctrl     <30   0.90     0.77     1.07 0.2204       
+    ##         Mac    >=30   2.32     1.84     2.92              
+    ##     Control    >=30   2.50     1.98     3.14              
+    ##  Mac - Ctrl    >=30   0.93     0.78     1.10 0.3749 0.8218
+
+### Examining the interaction with baseline WC
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline waist circumference (WC), a dichotomous WC variable
+    (\<108 and >=108) was added into the mixed model, along with its
+    interaction with treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline WC adjusted for sequence and phase, and then
+    back-transformed into the original scale.
+-   The last row of `Mac - Control` actually refers to the **ratio** of
+    treatment means (mac/control) after the back-transformation.
+    -   None of these variables showed a significant interaction with
+        baseline WC, indicating that the effect of mac treatment is not
+        significantly different between WC \<108 and >=108.
+
+<!-- -->
+
+    ## $`log(CRPmgdL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108   3.92     2.64     5.83              
+    ##     Control   <108   4.10     2.75     6.09              
+    ##  Mac - Ctrl   <108   0.96     0.70     1.31 0.7766       
+    ##         Mac  >=108   4.71     3.05     7.27              
+    ##     Control  >=108   5.92     3.84     9.13              
+    ##  Mac - Ctrl  >=108   0.80     0.57     1.12 0.1829 0.4240
+    ## 
+    ## $`log(ESelectinngdL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108  32.05    26.17    39.26              
+    ##     Control   <108  31.44    25.67    38.51              
+    ##  Mac - Ctrl   <108   1.02     0.95     1.10 0.5948       
+    ##         Mac  >=108  39.53    31.67    49.33              
+    ##     Control  >=108  41.65    33.37    51.98              
+    ##  Mac - Ctrl  >=108   0.95     0.88     1.03 0.1921 0.1886
+    ## 
+    ## $`log(IL6pgmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108   0.47     0.36     0.60              
+    ##     Control   <108   0.50     0.39     0.65              
+    ##  Mac - Ctrl   <108   0.93     0.73     1.18 0.5545       
+    ##         Mac  >=108   0.51     0.38     0.67              
+    ##     Control  >=108   0.47     0.35     0.62              
+    ##  Mac - Ctrl  >=108   1.08     0.83     1.40 0.5655 0.4125
+    ## 
+    ## $`log(TNFapgmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108   0.92     0.80     1.06              
+    ##     Control   <108   0.95     0.83     1.09              
+    ##  Mac - Ctrl   <108   0.97     0.89     1.06 0.5146       
+    ##         Mac  >=108   1.06     0.92     1.24              
+    ##     Control  >=108   1.07     0.92     1.24              
+    ##  Mac - Ctrl  >=108   1.00     0.90     1.10 0.9204 0.7139
+    ## 
+    ## $`log(sICAM1pgmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108 397.98   353.81   447.67              
+    ##     Control   <108 390.32   347.00   439.05              
+    ##  Mac - Ctrl   <108   1.02     0.95     1.09 0.5511       
+    ##         Mac  >=108 433.11   380.86   492.53              
+    ##     Control  >=108 448.66   394.53   510.22              
+    ##  Mac - Ctrl  >=108   0.97     0.90     1.04 0.3245 0.2615
+    ## 
+    ## $`log(sVCAm1pgmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108 432.71   376.57   497.22              
+    ##     Control   <108 442.14   384.77   508.06              
+    ##  Mac - Ctrl   <108   0.98     0.92     1.04 0.4683       
+    ##         Mac  >=108 485.44   417.04   565.05              
+    ##     Control  >=108 480.66   412.94   559.50              
+    ##  Mac - Ctrl  >=108   1.01     0.95     1.08 0.7602 0.4759
+    ## 
+    ## $`log(isopgf2pgmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108 585.01   522.40   655.11              
+    ##     Control   <108 607.52   542.51   680.31              
+    ##  Mac - Ctrl   <108   0.96     0.83     1.11 0.5948       
+    ##         Mac  >=108 736.55   650.86   833.52              
+    ##     Control  >=108 649.26   573.72   734.74              
+    ##  Mac - Ctrl  >=108   1.13     0.97     1.33 0.1102 0.1258
+    ## 
+    ## $`log(MDAnmolmL)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108   1.80     1.45     2.22              
+    ##     Control   <108   2.04     1.65     2.52              
+    ##  Mac - Ctrl   <108   0.88     0.75     1.03 0.1146       
+    ##         Mac  >=108   2.50     1.98     3.15              
+    ##     Control  >=108   2.61     2.07     3.29              
+    ##  Mac - Ctrl  >=108   0.96     0.81     1.14 0.6200 0.4740
+
+### Examining the interaction with baseline % body fat
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline % body fat (BF), a dichotomous BF variable (\<43
+    and >=43) was added into the mixed model, along with its interaction
+    with treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline BF adjusted for sequence and phase, and then
+    back-transformed into the original scale.
+-   The last row of `Mac - Control` actually refers to the **ratio** of
+    treatment means (mac/control) after the back-transformation.
+    -   None of these variables showed a significant interaction with
+        baseline BF, indicating that the effect of mac treatment is not
+        significantly different between WC \<43 and >=43.
+
+<!-- -->
+
+    ## $`log(CRPmgdL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43   2.85     1.95     4.18              
+    ##     Control    <43   3.47     2.40     5.01              
+    ##  Mac - Ctrl    <43   0.82     0.57     1.18 0.2778       
+    ##         Mac   >=43   5.97     4.21     8.46              
+    ##     Control   >=43   6.64     4.64     9.50              
+    ##  Mac - Ctrl   >=43   0.90     0.64     1.26 0.5265 0.7191
+    ## 
+    ## $`log(ESelectinngdL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43  33.69    27.60    41.12              
+    ##     Control    <43  34.40    28.32    41.78              
+    ##  Mac - Ctrl    <43   0.98     0.90     1.06 0.6100       
+    ##         Mac   >=43  36.65    30.41    44.17              
+    ##     Control   >=43  37.06    30.64    44.82              
+    ##  Mac - Ctrl   >=43   0.99     0.92     1.07 0.7760 0.8599
+    ## 
+    ## $`log(IL6pgmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43   0.45     0.34     0.59              
+    ##     Control    <43   0.42     0.33     0.55              
+    ##  Mac - Ctrl    <43   1.06     0.82     1.38 0.6485       
+    ##         Mac   >=43   0.52     0.40     0.66              
+    ##     Control   >=43   0.55     0.43     0.72              
+    ##  Mac - Ctrl   >=43   0.93     0.73     1.19 0.5575 0.4658
+    ## 
+    ## $`log(TNFapgmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43   0.94     0.81     1.09              
+    ##     Control    <43   0.95     0.83     1.10              
+    ##  Mac - Ctrl    <43   0.99     0.90     1.08 0.7572       
+    ##         Mac   >=43   1.03     0.90     1.17              
+    ##     Control   >=43   1.05     0.92     1.21              
+    ##  Mac - Ctrl   >=43   0.97     0.89     1.07 0.5644 0.8651
+    ## 
+    ## $`log(sICAM1pgmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43 403.56   357.15   456.00              
+    ##     Control    <43 401.29   356.42   451.80              
+    ##  Mac - Ctrl    <43   1.01     0.93     1.08 0.8773       
+    ##         Mac   >=43 422.26   377.22   472.67              
+    ##     Control   >=43 430.19   383.28   482.84              
+    ##  Mac - Ctrl   >=43   0.98     0.92     1.05 0.5895 0.6315
+    ## 
+    ## $`log(sVCAm1pgmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43 425.76   372.55   486.57              
+    ##     Control    <43 430.61   378.19   490.30              
+    ##  Mac - Ctrl    <43   0.99     0.92     1.06 0.7346       
+    ##         Mac   >=43 482.98   426.69   546.69              
+    ##     Control   >=43 488.10   430.04   554.01              
+    ##  Mac - Ctrl   >=43   0.99     0.93     1.05 0.7371 0.9866
+    ## 
+    ## $`log(isopgf2pgmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43 650.84   571.02   741.82              
+    ##     Control    <43 651.16   573.74   739.04              
+    ##  Mac - Ctrl    <43   1.00     0.85     1.17 0.9949       
+    ##         Mac   >=43 648.89   575.67   731.43              
+    ##     Control   >=43 603.54   533.73   682.48              
+    ##  Mac - Ctrl   >=43   1.08     0.93     1.25 0.3291 0.4998
+    ## 
+    ## $`log(MDAnmolmL)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43   2.08     1.65     2.64              
+    ##     Control    <43   2.44     1.94     3.07              
+    ##  Mac - Ctrl    <43   0.85     0.72     1.01 0.0615       
+    ##         Mac   >=43   2.10     1.69     2.60              
+    ##     Control   >=43   2.14     1.71     2.67              
+    ##  Mac - Ctrl   >=43   0.98     0.84     1.15 0.7920 0.2306

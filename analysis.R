@@ -193,8 +193,8 @@ show_result2 <- function(emm, lmer, log = FALSE){
   emm <- emm %>% tidy_output2(lmer)
   if(log) emm <- emm %>% mutate_at(3:5, exp)
   emm %>% 
-    mutate_at(3:5, round, 2) %>% 
-    print(row.names = FALSE)
+    mutate_at(3:5, round, 2) 
+    # print(row.names = FALSE)
 }
 
 # Interaction with baseline BMI, dichotomous
@@ -394,3 +394,48 @@ all_inflam_results <- yvars %>% map(inflam_results)
 names(all_inflam_results) <- yvars
 
 print(all_inflam_results, row.names = FALSE)
+
+# Interaction with baseline BMI, dichotomous
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseBMI") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseBMI) %>% 
+    show_result2(mod, log = TRUE)
+}
+all_inflam_results2 <- yvars %>% map(inflam_results)
+names(all_inflam_results2) <- yvars
+all_inflam_results2 %>% 
+  print(row.names = FALSE)
+
+# Interaction with baseline WC, dichotomous
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseWC") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseWC) %>% 
+    show_result2(mod, log = TRUE)
+}
+all_inflam_results3 <- yvars %>% map(inflam_results)
+names(all_inflam_results3) <- yvars
+all_inflam_results3 %>% 
+  print(row.names = FALSE)
+
+# Interaction with baseline % body fat, dichotomous
+
+inflam_results <- function(var){
+  mod <- write_model(y = var, "Treatment * BaseBF") %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings()
+  mod %>% 
+    emmeans(~ Treatment + BaseBF) %>% 
+    show_result2(mod, log = TRUE)
+}
+all_inflam_results4 <- yvars %>% map(inflam_results)
+names(all_inflam_results4) <- yvars
+all_inflam_results4 %>% 
+  print(row.names = FALSE)
