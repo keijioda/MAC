@@ -79,67 +79,53 @@ mac_fem <- mac %>%
   * Insulin resistance
   * Inflammatory/oxidative markers
 
-## Descriptive analysis on inflammatory/oxidative markers
+## Descriptive analysis on insulin resistance
 
 * Variables included:
-  * `CRPmgdL`
-  * `ESelectinngdL`
-  * `IL6pgmL`
-  * `TNFapgmL`
-  * `sICAM1pgmL`
-  * `sVCAm1pgmL`
-  * `isopgf2pgmL`
-  * `MDAnmolmL`
+  * `GlucosemgdL`
+  * `InsulinuIUml`
+  * `HOMA_IR`
 
 ### Mean/SD by treatment
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE }
-# Variable names
-inflam_vars <- c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
-  map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE)) %>% 
-  sapply("[[", 1)
-
-inflamB_vars <- paste0(inflam_vars, "B")
-
 # Descriptive means
 # Data including baseline values as obs
 mac_with_base <- mac %>%
   filter(Phase == 1) %>% 
   mutate(Treatment = "Baseline") %>% 
-  select(ID, Treatment, all_of(inflamB_vars)) %>% 
-  rename_with(function(x) substr(x, 1, nchar(x) - 1), all_of(inflamB_vars)) %>% 
-  bind_rows(select(mac, ID, Treatment, all_of(inflam_vars))) %>% 
+  select(ID, Treatment, GlucosemgdLB, InsulinuIUmlB) %>% 
+  rename(GlucosemgdL = GlucosemgdLB, InsulinuIUml = InsulinuIUmlB) %>% 
+  bind_rows(select(mac, ID, Treatment, GlucosemgdL, InsulinuIUml, HOMA_IR)) %>% 
   mutate(Treatment = factor(Treatment))
 
 # Mean (SD) by treatment
 Mean <- function(x) mean(x, na.rm = TRUE)
 SD <- function(x) sd(x, na.rm = TRUE)
-tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Treatment, data = mac_with_base) %>% 
   suppressWarnings()
 ```
 
 ### Mean/SD by sequence group and treatment
 
-
 ```{r echo = FALSE}
-# Mean (SD) by sequence and treatment
-tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Group * Heading() * Treatment, data = mac) %>% 
   suppressWarnings()
 ```
 
-## Mixed model analysis on on inflammatory/oxidative markers
+## Mixed model analysis on on insulin resistance
 
-* Each of inflammatory/oxidative variables was log-transformed and used as a dependent variable in the following mixed model.
+* For insulin and HOMA-IR, a log-transformation was applied. No transformation was used on glucose.
 * The mixed model included:
   * treatment(mac/control), sequence groups (AB/BA), and phase as fixed-effects
   * subjects as random-effects
-* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase, and then back-transformed into the original scale. 
-* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means were back-transformed into the original scale. 
+* For insulin and HOMA-IR, the last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
   * None of these variables showed a significant difference between the two treatments.
 
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 tidy_output <- function(emm){
   
   delta <- confint(pairs(emm)) %>% 
@@ -167,29 +153,29 @@ show_result <- function(emm, log = FALSE){
 write_model <- function(y, trt_var = "Treatment") as.formula(paste0(y, " ~ ", trt_var, "+ Group + Phase + (1|ID)"))
 
 # All together
-inflam_results <- function(var){
-  write_model(y = var) %>% 
-    lmer(data = mac) %>% 
-    suppressWarnings() %>% 
-    emmeans(~ Treatment) %>% 
-    show_result(log = TRUE)
-}
+insresis_results <- vector(mode = "list", length = 3)
 
-yvars <- c("log(CRPmgdL)", "log(ESelectinngdL)", "log(IL6pgmL)", "log(TNFapgmL)", 
-           "log(sICAM1pgmL)", "log(sVCAm1pgmL)", "log(isopgf2pgmL)", "log(MDAnmolmL)")
-all_inflam_results <- yvars %>% map(inflam_results)
-names(all_inflam_results) <- yvars
-print(all_inflam_results, row.names = FALSE)
+insresis_results[[1]] <- write_model(y = "GlucosemgdL") %>% 
+  lmer(data = mac) %>% emmeans(~Treatment) %>% show_result()
+
+insresis_results[[2]] <- write_model(y = "log(InsulinuIUml)") %>% 
+  lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
+
+insresis_results[[3]] <- write_model(y = "log(HOMA_IR)") %>% 
+  lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
+
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+insresis_results %>% print(row.names = FALSE)
 ```
 
 ### Examining the interaction with baseline BMI
 
 * To examine if the effect of mac treatment may be different depending on baseline BMI, a dichotomous BMI variable (<30 and >=30) was added into the mixed model, along with its interaction with treatment.
-* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase, and then back-transformed into the original scale. 
-* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means were back-transformed into the original scale. 
+* For insulin and HOMA-IR, the last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
   * None of these variables showed a significant interaction with baseline BMI, indicating that the effect of mac treatment is not significantly different between BMI <30 and >=30.
 
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 tidy_output2 <- function(emm, lmer){
   
   flevels <- summary(emm) %>% select(2) %>% distinct()
@@ -227,6 +213,142 @@ show_result2 <- function(emm, lmer, log = FALSE){
     # print(row.names = FALSE)
 }
 
+# Interaction with baseline BMI, dichotomous
+glu_mod2  <- write_model("GlucosemgdL", "Treatment * BaseBMI") %>% lmer(data = mac)
+ins_mod2  <- write_model("log(InsulinuIUml)", "Treatment * BaseBMI") %>% lmer(data = mac)
+homa_mod2 <- write_model("log(HOMA_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
+
+# All together
+insresis_results[[1]] <- glu_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(glu_mod2)
+insresis_results[[2]] <- ins_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(ins_mod2, log = TRUE)
+insresis_results[[3]] <- homa_mod2 %>% emmeans(~Treatment + BaseBMI) %>% show_result2(homa_mod2, log = TRUE)
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+insresis_results %>% print(row.names = FALSE)
+```
+
+### Examining the interaction with baseline WC
+
+* To examine if the effect of mac treatment may be different depending on baseline waist circumference (WC), a dichotomous WC variable (<108 and >=108) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means were back-transformed into the original scale. 
+* For insulin and HOMA-IR, the last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * For insulin and HOMA-IR, the treatment x baseline WC interaction was significant. In both outcomes, the mean after mac treatment was significantly higher than the control among those with baseline WC < 108 cm. However, no significant treatment difference was found among those with baseline WC >= 108 cm.
+  
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+glu_mod3  <- write_model("GlucosemgdL", "Treatment * BaseWC") %>% lmer(data = mac)
+ins_mod3  <- write_model("log(InsulinuIUml)", "Treatment * BaseWC") %>% lmer(data = mac)
+homa_mod3 <- write_model("log(HOMA_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
+
+# All together
+insresis_results[[1]] <- glu_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(glu_mod3)
+insresis_results[[2]] <- ins_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(ins_mod3, log = TRUE)
+insresis_results[[3]] <- homa_mod3 %>% emmeans(~Treatment + BaseWC) %>% show_result2(homa_mod3, log = TRUE)
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+insresis_results %>% print(row.names = FALSE)
+```
+
+### Examining the interaction with baseline % body fat
+
+* To examine if the effect of mac treatment may be different depending on baseline % body fat (BF), a dichotomous BF variable (<43 and >=43) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means were back-transformed into the original scale. 
+* For insulin and HOMA-IR, the last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant interaction with baseline BF, indicating that the effect of mac treatment is not significantly different between % body fat <43 and >=43.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# Interaction with baseline % body fat, dichotomous
+glu_mod4  <- write_model("GlucosemgdL", "Treatment * BaseBF") %>% lmer(data = mac)
+ins_mod4  <- write_model("log(InsulinuIUml)", "Treatment * BaseBF") %>% lmer(data = mac)
+homa_mod4 <- write_model("log(HOMA_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
+
+# All together
+insresis_results[[1]] <- glu_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(glu_mod4)
+insresis_results[[2]] <- ins_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(ins_mod4, log = TRUE)
+insresis_results[[3]] <- homa_mod4 %>% emmeans(~Treatment + BaseBF) %>% show_result2(homa_mod4, log = TRUE)
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+insresis_results %>% print(row.names = FALSE)
+```
+
+## Descriptive analysis on inflammatory/oxidative markers
+
+* Variables included:
+  * `CRPmgdL`
+  * `ESelectinngdL`
+  * `IL6pgmL`
+  * `TNFapgmL`
+  * `sICAM1pgmL`
+  * `sVCAm1pgmL`
+  * `isopgf2pgmL`
+  * `MDAnmolmL`
+
+### Mean/SD by treatment
+
+```{r echo = FALSE, message = FALSE, warning = FALSE }
+# Variable names
+inflam_vars <- c("crp", "eselec", "il6", "tnf", "icam", "vcam", "iso", "mda") %>% 
+  map(function(x) grep(x, names(mac0), value = TRUE, ignore.case = TRUE)) %>% 
+  sapply("[[", 1)
+
+inflamB_vars <- paste0(inflam_vars, "B")
+
+# Descriptive means
+# Data including baseline values as obs
+mac_with_base <- mac %>%
+  filter(Phase == 1) %>% 
+  mutate(Treatment = "Baseline") %>% 
+  select(ID, Treatment, all_of(inflamB_vars)) %>% 
+  rename_with(function(x) substr(x, 1, nchar(x) - 1), all_of(inflamB_vars)) %>% 
+  bind_rows(select(mac, ID, Treatment, all_of(inflam_vars))) %>% 
+  mutate(Treatment = factor(Treatment))
+
+# Mean (SD) by treatment
+tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+          Heading() * Treatment, data = mac_with_base) %>% 
+  suppressWarnings()
+```
+
+### Mean/SD by sequence group and treatment
+
+```{r echo = FALSE}
+# Mean (SD) by sequence and treatment
+tabular((CRPmgdL + ESelectinngdL + IL6pgmL + TNFapgmL + sICAM1pgmL + sVCAm1pgmL + isopgf2pgmL + MDAnmolmL) * (Mean + SD) * Format(digits = 2)  ~  
+          Heading() * Group * Heading() * Treatment, data = mac) %>% 
+  suppressWarnings()
+```
+
+## Mixed model analysis on inflammatory/oxidative markers
+
+* Each of inflammatory/oxidative variables was log-transformed and used as a dependent variable in the following mixed model.
+* The mixed model included:
+  * treatment(mac/control), sequence groups (AB/BA), and phase as fixed-effects
+  * subjects as random-effects
+* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant difference between the two treatments.
+
+```{r echo = FALSE}
+# All together
+inflam_results <- function(var){
+  write_model(y = var) %>% 
+    lmer(data = mac) %>% 
+    suppressWarnings() %>% 
+    emmeans(~ Treatment) %>% 
+    show_result(log = TRUE)
+}
+
+yvars <- c("log(CRPmgdL)", "log(ESelectinngdL)", "log(IL6pgmL)", "log(TNFapgmL)", 
+           "log(sICAM1pgmL)", "log(sVCAm1pgmL)", "log(isopgf2pgmL)", "log(MDAnmolmL)")
+all_inflam_results <- yvars %>% map(inflam_results)
+names(all_inflam_results) <- yvars
+print(all_inflam_results, row.names = FALSE)
+```
+
+### Examining the interaction with baseline BMI
+
+* To examine if the effect of mac treatment may be different depending on baseline BMI, a dichotomous BMI variable (<30 and >=30) was added into the mixed model, along with its interaction with treatment.
+* Marginal means were estimated for each combination of treatment and baseline BMI adjusted for sequence and phase, and then back-transformed into the original scale. 
+* The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
+  * None of these variables showed a significant interaction with baseline BMI, indicating that the effect of mac treatment is not significantly different between BMI <30 and >=30.
+
+```{r echo = FALSE}
 inflam_results <- function(var){
   mod <- write_model(y = var, "Treatment * BaseBMI") %>% 
     lmer(data = mac) %>% 
@@ -269,10 +391,10 @@ print(all_inflam_results3, row.names = FALSE)
 * To examine if the effect of mac treatment may be different depending on baseline % body fat (BF), a dichotomous BF variable (<43 and >=43) was added into the mixed model, along with its interaction with treatment.
 * Marginal means were estimated for each combination of treatment and baseline BF adjusted for sequence and phase, and then back-transformed into the original scale. 
 * The last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
-  * None of these variables showed a significant interaction with baseline BF, indicating that the effect of mac treatment is not significantly different between WC <43 and >=43.
+  * None of these variables showed a significant interaction with baseline BF, indicating that the effect of mac treatment is not significantly different between % body fat <43 and >=43.
 
 ```{r echo = FALSE}
-# Interaction with baseline WC, dichotomous
+# Interaction with baseline BF, dichotomous
 
 inflam_results <- function(var){
   mod <- write_model(y = var, "Treatment * BaseBF") %>% 

@@ -24,6 +24,214 @@ MAC study
     -   Insulin resistance
     -   Inflammatory/oxidative markers
 
+## Descriptive analysis on insulin resistance
+
+-   Variables included:
+    -   `GlucosemgdL`
+    -   `InsulinuIUml`
+    -   `HOMA_IR`
+
+### Mean/SD by treatment
+
+    ##                                           
+    ##                    Baseline Control Mac   
+    ##  GlucosemgdL  Mean 103.83   102.43  102.71
+    ##               SD     7.33     7.66    8.81
+    ##  InsulinuIUml Mean  11.65    12.66   13.55
+    ##               SD     5.79     6.81    6.27
+    ##  HOMA_IR      Mean    NaN     1.46    1.56
+    ##               SD       NA     0.78    0.72
+
+### Mean/SD by sequence group and treatment
+
+    ##                                                           
+    ##                    Mac-Control         Control-Mac        
+    ##                    Mac         Control Mac         Control
+    ##  GlucosemgdL  Mean 102.17      103.89  103.29      100.88 
+    ##               SD     7.67        7.44   10.09        7.82 
+    ##  InsulinuIUml Mean  14.13       13.68   12.93       11.58 
+    ##               SD     6.59        6.96    6.05        6.68 
+    ##  HOMA_IR      Mean   1.62        1.58    1.49        1.33 
+    ##               SD     0.74        0.80    0.71        0.77
+
+## Mixed model analysis on on insulin resistance
+
+-   For insulin and HOMA-IR, a log-transformation was applied. No
+    transformation was used on glucose.
+-   The mixed model included:
+    -   treatment(mac/control), sequence groups (AB/BA), and phase as
+        fixed-effects
+    -   subjects as random-effects
+-   Marginal means were estimated for both treatments (with 95% CI)
+    adjusted for sequence and phase. For log-transformed outcomes,
+    estimated marginal means were back-transformed into the original
+    scale.
+-   For insulin and HOMA-IR, the last row of `Mac - Control` actually
+    refers to the **ratio** of treatment means (mac/control) after the
+    back-transformation.
+    -   None of these variables showed a significant difference between
+        the two treatments.
+
+<!-- -->
+
+    ## $GlucosemgdL
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac 102.73    99.89   105.57       
+    ##        Control 102.39    99.54   105.23       
+    ##  Mac - Control   0.34    -1.16     1.85 0.6443
+    ## 
+    ## $`log(InsulinuIUml)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac  12.13    10.17    14.46       
+    ##        Control  11.07     9.28    13.20       
+    ##  Mac - Control   1.10     0.98     1.22 0.0997
+    ## 
+    ## $`log(HOMA_IR)`
+    ##      Treatment emmean lower.CL upper.CL   pval
+    ##            Mac   1.40     1.17     1.66       
+    ##        Control   1.27     1.07     1.52       
+    ##  Mac - Control   1.10     0.98     1.22 0.0953
+
+### Examining the interaction with baseline BMI
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline BMI, a dichotomous BMI variable (\<30 and >=30) was
+    added into the mixed model, along with its interaction with
+    treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline BMI adjusted for sequence and phase. For log-transformed
+    outcomes, estimated marginal means were back-transformed into the
+    original scale.
+-   For insulin and HOMA-IR, the last row of `Mac - Control` actually
+    refers to the **ratio** of treatment means (mac/control) after the
+    back-transformation.
+    -   None of these variables showed a significant interaction with
+        baseline BMI, indicating that the effect of mac treatment is not
+        significantly different between BMI \<30 and >=30.
+
+<!-- -->
+
+    ## $GlucosemgdL
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30 103.74    99.72   107.76              
+    ##     Control     <30 102.89    98.88   106.91              
+    ##  Mac - Ctrl     <30   0.85    -1.28     2.97 0.4235       
+    ##         Mac    >=30 101.67    97.54   105.79              
+    ##     Control    >=30 101.85    97.73   105.98              
+    ##  Mac - Ctrl    >=30  -0.18    -2.36     2.00 0.8654 0.4970
+    ## 
+    ## $`log(InsulinuIUml)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30  10.87     8.53    13.87              
+    ##     Control     <30   9.75     7.65    12.43              
+    ##  Mac - Ctrl     <30   1.12     0.95     1.30 0.1623       
+    ##         Mac    >=30  13.60    10.60    17.45              
+    ##     Control    >=30  12.65     9.86    16.23              
+    ##  Mac - Ctrl    >=30   1.08     0.92     1.26 0.3631 0.7385
+    ## 
+    ## $`log(HOMA_IR)`
+    ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
+    ##         Mac     <30   1.26     0.99     1.60              
+    ##     Control     <30   1.13     0.88     1.44              
+    ##  Mac - Ctrl     <30   1.12     0.96     1.30 0.1520       
+    ##         Mac    >=30   1.56     1.21     2.00              
+    ##     Control    >=30   1.45     1.13     1.86              
+    ##  Mac - Ctrl    >=30   1.07     0.92     1.26 0.3655 0.7169
+
+### Examining the interaction with baseline WC
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline waist circumference (WC), a dichotomous WC variable
+    (\<108 and >=108) was added into the mixed model, along with its
+    interaction with treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline BMI adjusted for sequence and phase. For log-transformed
+    outcomes, estimated marginal means were back-transformed into the
+    original scale.
+-   For insulin and HOMA-IR, the last row of `Mac - Control` actually
+    refers to the **ratio** of treatment means (mac/control) after the
+    back-transformation.
+    -   For insulin and HOMA-IR, the treatment x baseline WC interaction
+        was significant. In both outcomes, the mean after mac treatment
+        was significantly higher than the control among those with
+        baseline WC \< 108 cm. However, no significant treatment
+        difference was found among those with baseline WC >= 108 cm.
+
+<!-- -->
+
+    ## $GlucosemgdL
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108 102.34    98.42   106.26              
+    ##     Control   <108 102.55    98.64   106.47              
+    ##  Mac - Ctrl   <108  -0.22    -2.27     1.84 0.8312       
+    ##         Mac  >=108 103.20    98.92   107.48              
+    ##     Control  >=108 102.19    97.90   106.47              
+    ##  Mac - Ctrl  >=108   1.02    -1.23     3.26 0.3643 0.4168
+    ## 
+    ## $`log(InsulinuIUml)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108  10.90     8.69    13.67              
+    ##     Control   <108   8.97     7.15    11.25              
+    ##  Mac - Ctrl   <108   1.22     1.06     1.40 0.0083       
+    ##         Mac  >=108  13.78    10.75    17.65              
+    ##     Control  >=108  14.23    11.10    18.23              
+    ##  Mac - Ctrl  >=108   0.97     0.83     1.13 0.6738 0.0345
+    ## 
+    ## $`log(HOMA_IR)`
+    ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
+    ##         Mac   <108   1.26     1.00     1.58              
+    ##     Control   <108   1.04     0.83     1.30              
+    ##  Mac - Ctrl   <108   1.21     1.05     1.39 0.0085       
+    ##         Mac  >=108   1.58     1.23     2.03              
+    ##     Control  >=108   1.63     1.27     2.09              
+    ##  Mac - Ctrl  >=108   0.97     0.83     1.13 0.7029 0.0372
+
+### Examining the interaction with baseline % body fat
+
+-   To examine if the effect of mac treatment may be different depending
+    on baseline % body fat (BF), a dichotomous BF variable (\<43
+    and >=43) was added into the mixed model, along with its interaction
+    with treatment.
+-   Marginal means were estimated for each combination of treatment and
+    baseline BMI adjusted for sequence and phase. For log-transformed
+    outcomes, estimated marginal means were back-transformed into the
+    original scale.
+-   For insulin and HOMA-IR, the last row of `Mac - Control` actually
+    refers to the **ratio** of treatment means (mac/control) after the
+    back-transformation.
+    -   None of these variables showed a significant interaction with
+        baseline BF, indicating that the effect of mac treatment is not
+        significantly different between % body fat \<43 and >=43.
+
+<!-- -->
+
+    ## $GlucosemgdL
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43 104.42   100.49   108.36              
+    ##     Control    <43 103.19    99.37   107.00              
+    ##  Mac - Ctrl    <43   1.24    -1.00     3.48 0.2689       
+    ##         Mac   >=43 101.31    97.68   104.95              
+    ##     Control   >=43 101.63    97.91   105.35              
+    ##  Mac - Ctrl   >=43  -0.32    -2.43     1.79 0.7594 0.3127
+    ## 
+    ## $`log(InsulinuIUml)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43  12.44     9.65    16.03              
+    ##     Control    <43  11.35     8.87    14.51              
+    ##  Mac - Ctrl    <43   1.10     0.93     1.29 0.2639       
+    ##         Mac   >=43  11.87     9.39    15.00              
+    ##     Control   >=43  10.81     8.51    13.74              
+    ##  Mac - Ctrl   >=43   1.10     0.94     1.28 0.2272 0.9874
+    ## 
+    ## $`log(HOMA_IR)`
+    ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
+    ##         Mac    <43   1.44     1.12     1.85              
+    ##     Control    <43   1.31     1.03     1.67              
+    ##  Mac - Ctrl    <43   1.10     0.93     1.29 0.2499       
+    ##         Mac   >=43   1.36     1.08     1.72              
+    ##     Control   >=43   1.24     0.98     1.57              
+    ##  Mac - Ctrl   >=43   1.10     0.94     1.28 0.2251 0.9959
+
 ## Descriptive analysis on inflammatory/oxidative markers
 
 -   Variables included:
@@ -79,7 +287,7 @@ MAC study
     ##  MDAnmolmL     Mean   2.36        2.34    2.36        2.66 
     ##                SD     1.31        1.03    1.13        1.07
 
-## Mixed model analysis on on inflammatory/oxidative markers
+## Mixed model analysis on inflammatory/oxidative markers
 
 -   Each of inflammatory/oxidative variables was log-transformed and
     used as a dependent variable in the following mixed model.
@@ -336,7 +544,7 @@ MAC study
     treatment means (mac/control) after the back-transformation.
     -   None of these variables showed a significant interaction with
         baseline BF, indicating that the effect of mac treatment is not
-        significantly different between WC \<43 and >=43.
+        significantly different between % body fat \<43 and >=43.
 
 <!-- -->
 
