@@ -24,8 +24,8 @@ setwd("C:\\Users\\keiji\\Dropbox\\Nutrition\\Julie Jones")
 # Read data ---------------------------------------------------------------
 
 # Read data, n obs = 70
-# mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
-mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
+mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
+# mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
 
 # Fix variable names
 fixthis <- mac0 %>% search_var("8iso") %>% pull(num)
@@ -84,7 +84,7 @@ mac_fem <- mac %>%
 * Variables included:
   * `GlucosemgdL`
   * `InsulinuIUml`
-  * `HOMA_IR`
+  * `HOMA2_IR`
 
 ### Mean/SD by treatment
 
@@ -94,15 +94,15 @@ mac_fem <- mac %>%
 mac_with_base <- mac %>%
   filter(Phase == 1) %>% 
   mutate(Treatment = "Baseline") %>% 
-  select(ID, Treatment, GlucosemgdLB, InsulinuIUmlB) %>% 
-  rename(GlucosemgdL = GlucosemgdLB, InsulinuIUml = InsulinuIUmlB) %>% 
-  bind_rows(select(mac, ID, Treatment, GlucosemgdL, InsulinuIUml, HOMA_IR)) %>% 
+  select(ID, Treatment, GlucosemgdLB, InsulinuIUmlB, HOMA2_IRB) %>% 
+  rename(GlucosemgdL = GlucosemgdLB, InsulinuIUml = InsulinuIUmlB, HOMA2_IR = HOMA2_IRB) %>% 
+  bind_rows(select(mac, ID, Treatment, GlucosemgdL, InsulinuIUml, HOMA2_IR)) %>% 
   mutate(Treatment = factor(Treatment))
 
 # Mean (SD) by treatment
 Mean <- function(x) mean(x, na.rm = TRUE)
 SD <- function(x) sd(x, na.rm = TRUE)
-tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA2_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Treatment, data = mac_with_base) %>% 
   suppressWarnings()
 ```
@@ -110,7 +110,7 @@ tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2
 ### Mean/SD by sequence group and treatment
 
 ```{r echo = FALSE}
-tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA2_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Group * Heading() * Treatment, data = mac) %>% 
   suppressWarnings()
 ```
@@ -121,7 +121,7 @@ tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2
 * The mixed model included:
   * treatment(mac/control), sequence groups (AB/BA), and phase as fixed-effects
   * subjects as random-effects
-* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means were back-transformed into the original scale. 
+* Marginal means were estimated for both treatments (with 95% CI) adjusted for sequence and phase. For log-transformed outcomes, estimated marginal means (and 95% CIs) were back-transformed into the original scale, while the standard errors are on the log scale. 
 * For insulin and HOMA-IR, the last row of `Mac - Control` actually refers to the **ratio** of treatment means (mac/control) after the back-transformation.
   * None of these variables showed a significant difference between the two treatments.
 
@@ -138,15 +138,15 @@ tidy_output <- function(emm){
   
   as.data.frame(emm) %>% 
     bind_rows(delta) %>% 
-    select(-df, -SE) %>% 
+    select(-df) %>% 
     bind_cols(pval)
 }
 
 show_result <- function(emm, log = FALSE){
   emm <- emm %>% tidy_output()
-  if(log) emm <- emm %>% mutate_at(2:4, exp)
+  if(log) emm <- emm %>% mutate_at(c(2, 4:5), exp)
   emm <- emm %>% 
-    mutate_at(2:4, round, 2)
+    mutate_at(2:5, round, 2)
 }
 
 # Base model: adjusts for sequence and phase
@@ -161,10 +161,10 @@ insresis_results[[1]] <- write_model(y = "GlucosemgdL") %>%
 insresis_results[[2]] <- write_model(y = "log(InsulinuIUml)") %>% 
   lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 
-insresis_results[[3]] <- write_model(y = "log(HOMA_IR)") %>% 
+insresis_results[[3]] <- write_model(y = "log(HOMA2_IR)") %>% 
   lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 ```
 
@@ -216,13 +216,13 @@ show_result2 <- function(emm, lmer, log = FALSE){
 # Interaction with baseline BMI, dichotomous
 glu_mod2  <- write_model("GlucosemgdL", "Treatment * BaseBMI") %>% lmer(data = mac)
 ins_mod2  <- write_model("log(InsulinuIUml)", "Treatment * BaseBMI") %>% lmer(data = mac)
-homa_mod2 <- write_model("log(HOMA_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
+homa_mod2 <- write_model("log(HOMA2_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
 
 # All together
 insresis_results[[1]] <- glu_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(glu_mod2)
 insresis_results[[2]] <- ins_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(ins_mod2, log = TRUE)
 insresis_results[[3]] <- homa_mod2 %>% emmeans(~Treatment + BaseBMI) %>% show_result2(homa_mod2, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 ```
 
@@ -236,13 +236,13 @@ insresis_results %>% print(row.names = FALSE)
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 glu_mod3  <- write_model("GlucosemgdL", "Treatment * BaseWC") %>% lmer(data = mac)
 ins_mod3  <- write_model("log(InsulinuIUml)", "Treatment * BaseWC") %>% lmer(data = mac)
-homa_mod3 <- write_model("log(HOMA_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
+homa_mod3 <- write_model("log(HOMA2_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
 
 # All together
 insresis_results[[1]] <- glu_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(glu_mod3)
 insresis_results[[2]] <- ins_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(ins_mod3, log = TRUE)
 insresis_results[[3]] <- homa_mod3 %>% emmeans(~Treatment + BaseWC) %>% show_result2(homa_mod3, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 ```
 
@@ -257,13 +257,13 @@ insresis_results %>% print(row.names = FALSE)
 # Interaction with baseline % body fat, dichotomous
 glu_mod4  <- write_model("GlucosemgdL", "Treatment * BaseBF") %>% lmer(data = mac)
 ins_mod4  <- write_model("log(InsulinuIUml)", "Treatment * BaseBF") %>% lmer(data = mac)
-homa_mod4 <- write_model("log(HOMA_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
+homa_mod4 <- write_model("log(HOMA2_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
 
 # All together
 insresis_results[[1]] <- glu_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(glu_mod4)
 insresis_results[[2]] <- ins_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(ins_mod4, log = TRUE)
 insresis_results[[3]] <- homa_mod4 %>% emmeans(~Treatment + BaseBF) %>% show_result2(homa_mod4, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 ```
 

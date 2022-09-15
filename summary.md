@@ -7,7 +7,7 @@ MAC study
 -   Data are from a 2 x 2 crossover design (AB/BA) with control/mac
     treatments
 -   Includes *n* = 70 observations from 35 subjects
--   There are 113 variables including:
+-   There are 114 variables including:
     -   `ID`
     -   Study design variables:
         -   Sequence: `Group`
@@ -29,7 +29,7 @@ MAC study
 -   Variables included:
     -   `GlucosemgdL`
     -   `InsulinuIUml`
-    -   `HOMA_IR`
+    -   `HOMA2_IR`
 
 ### Mean/SD by treatment
 
@@ -39,8 +39,8 @@ MAC study
     ##               SD     7.33     7.66    8.81
     ##  InsulinuIUml Mean  11.65    12.66   13.55
     ##               SD     5.79     6.81    6.27
-    ##  HOMA_IR      Mean    NaN     1.46    1.56
-    ##               SD       NA     0.78    0.72
+    ##  HOMA2_IR     Mean   1.35     1.46    1.56
+    ##               SD     0.67     0.78    0.72
 
 ### Mean/SD by sequence group and treatment
 
@@ -51,7 +51,7 @@ MAC study
     ##               SD     7.67        7.44   10.09        7.82 
     ##  InsulinuIUml Mean  14.13       13.68   12.93       11.58 
     ##               SD     6.59        6.96    6.05        6.68 
-    ##  HOMA_IR      Mean   1.62        1.58    1.49        1.33 
+    ##  HOMA2_IR     Mean   1.62        1.58    1.49        1.33 
     ##               SD     0.74        0.80    0.71        0.77
 
 ## Mixed model analysis on on insulin resistance
@@ -64,8 +64,8 @@ MAC study
     -   subjects as random-effects
 -   Marginal means were estimated for both treatments (with 95% CI)
     adjusted for sequence and phase. For log-transformed outcomes,
-    estimated marginal means were back-transformed into the original
-    scale.
+    estimated marginal means (and 95% CIs) were back-transformed into
+    the original scale, while the standard errors are on the log scale.
 -   For insulin and HOMA-IR, the last row of `Mac - Control` actually
     refers to the **ratio** of treatment means (mac/control) after the
     back-transformation.
@@ -75,27 +75,27 @@ MAC study
 <!-- -->
 
     ## $GlucosemgdL
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac 102.73    99.89   105.57       
-    ##        Control 102.39    99.54   105.23       
-    ##  Mac - Control   0.34    -1.16     1.85 0.6443
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac 102.73 1.40    99.89   105.57       
+    ##        Control 102.39 1.40    99.54   105.23       
+    ##  Mac - Control   0.34 0.74    -1.16     1.85 0.6443
     ## 
     ## $`log(InsulinuIUml)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac  12.13    10.17    14.46       
-    ##        Control  11.07     9.28    13.20       
-    ##  Mac - Control   1.10     0.98     1.22 0.0997
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac  12.13 0.09    10.17    14.46       
+    ##        Control  11.07 0.09     9.28    13.20       
+    ##  Mac - Control   1.10 0.05     0.98     1.22 0.0997
     ## 
-    ## $`log(HOMA_IR)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac   1.40     1.17     1.66       
-    ##        Control   1.27     1.07     1.52       
-    ##  Mac - Control   1.10     0.98     1.22 0.0953
+    ## $`log(HOMA2_IR)`
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac   1.40 0.09     1.17     1.66       
+    ##        Control   1.27 0.09     1.07     1.52       
+    ##  Mac - Control   1.10 0.05     0.98     1.22 0.0953
 
 ### Examining the interaction with baseline BMI
 
 -   To examine if the effect of mac treatment may be different depending
-    on baseline BMI, a dichotomous BMI variable (\<30 and >=30) was
+    on baseline BMI, a dichotomous BMI variable (\<30 and \>=30) was
     added into the mixed model, along with its interaction with
     treatment.
 -   Marginal means were estimated for each combination of treatment and
@@ -107,7 +107,7 @@ MAC study
     back-transformation.
     -   None of these variables showed a significant interaction with
         baseline BMI, indicating that the effect of mac treatment is not
-        significantly different between BMI \<30 and >=30.
+        significantly different between BMI \<30 and \>=30.
 
 <!-- -->
 
@@ -129,7 +129,7 @@ MAC study
     ##     Control    >=30  12.65     9.86    16.23              
     ##  Mac - Ctrl    >=30   1.08     0.92     1.26 0.3631 0.7385
     ## 
-    ## $`log(HOMA_IR)`
+    ## $`log(HOMA2_IR)`
     ##   Treatment BaseBMI emmean lower.CL upper.CL   pval intx.P
     ##         Mac     <30   1.26     0.99     1.60              
     ##     Control     <30   1.13     0.88     1.44              
@@ -142,7 +142,7 @@ MAC study
 
 -   To examine if the effect of mac treatment may be different depending
     on baseline waist circumference (WC), a dichotomous WC variable
-    (\<108 and >=108) was added into the mixed model, along with its
+    (\<108 and \>=108) was added into the mixed model, along with its
     interaction with treatment.
 -   Marginal means were estimated for each combination of treatment and
     baseline BMI adjusted for sequence and phase. For log-transformed
@@ -155,7 +155,7 @@ MAC study
         was significant. In both outcomes, the mean after mac treatment
         was significantly higher than the control among those with
         baseline WC \< 108 cm. However, no significant treatment
-        difference was found among those with baseline WC >= 108 cm.
+        difference was found among those with baseline WC \>= 108 cm.
 
 <!-- -->
 
@@ -177,7 +177,7 @@ MAC study
     ##     Control  >=108  14.23    11.10    18.23              
     ##  Mac - Ctrl  >=108   0.97     0.83     1.13 0.6738 0.0345
     ## 
-    ## $`log(HOMA_IR)`
+    ## $`log(HOMA2_IR)`
     ##   Treatment BaseWC emmean lower.CL upper.CL   pval intx.P
     ##         Mac   <108   1.26     1.00     1.58              
     ##     Control   <108   1.04     0.83     1.30              
@@ -189,8 +189,8 @@ MAC study
 ### Examining the interaction with baseline % body fat
 
 -   To examine if the effect of mac treatment may be different depending
-    on baseline % body fat (BF), a dichotomous BF variable (\<43
-    and >=43) was added into the mixed model, along with its interaction
+    on baseline % body fat (BF), a dichotomous BF variable (\<43 and
+    \>=43) was added into the mixed model, along with its interaction
     with treatment.
 -   Marginal means were estimated for each combination of treatment and
     baseline BMI adjusted for sequence and phase. For log-transformed
@@ -201,7 +201,7 @@ MAC study
     back-transformation.
     -   None of these variables showed a significant interaction with
         baseline BF, indicating that the effect of mac treatment is not
-        significantly different between % body fat \<43 and >=43.
+        significantly different between % body fat \<43 and \>=43.
 
 <!-- -->
 
@@ -223,7 +223,7 @@ MAC study
     ##     Control   >=43  10.81     8.51    13.74              
     ##  Mac - Ctrl   >=43   1.10     0.94     1.28 0.2272 0.9874
     ## 
-    ## $`log(HOMA_IR)`
+    ## $`log(HOMA2_IR)`
     ##   Treatment BaseBF emmean lower.CL upper.CL   pval intx.P
     ##         Mac    <43   1.44     1.12     1.85              
     ##     Control    <43   1.31     1.03     1.67              
@@ -306,57 +306,57 @@ MAC study
 <!-- -->
 
     ## $`log(CRPmgdL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac   4.26     3.18     5.71       
-    ##        Control   4.84     3.62     6.49       
-    ##  Mac - Control   0.88     0.70     1.11 0.2632
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac   4.26 0.14     3.18     5.71       
+    ##        Control   4.84 0.14     3.62     6.49       
+    ##  Mac - Control   0.88 0.11     0.70     1.11 0.2632
     ## 
     ## $`log(ESelectinngdL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac  35.27    30.26    41.11       
-    ##        Control  35.74    30.67    41.66       
-    ##  Mac - Control   0.99     0.93     1.04 0.6215
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac  35.27 0.08    30.26    41.11       
+    ##        Control  35.74 0.08    30.67    41.66       
+    ##  Mac - Control   0.99 0.03     0.93     1.04 0.6215
     ## 
     ## $`log(IL6pgmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac   0.48     0.40     0.58       
-    ##        Control   0.49     0.40     0.59       
-    ##  Mac - Control   1.00     0.84     1.19 0.9614
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac   0.48 0.09     0.40     0.58       
+    ##        Control   0.49 0.09     0.40     0.59       
+    ##  Mac - Control   1.00 0.09     0.84     1.19 0.9614
     ## 
     ## $`log(TNFapgmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac   0.98     0.89     1.09       
-    ##        Control   1.00     0.91     1.11       
-    ##  Mac - Control   0.98     0.92     1.05 0.5777
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac   0.98 0.05     0.89     1.09       
+    ##        Control   1.00 0.05     0.91     1.11       
+    ##  Mac - Control   0.98 0.03     0.92     1.05 0.5777
     ## 
     ## $`log(sICAM1pgmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac 413.63   378.94   451.50       
-    ##        Control 415.91   381.03   453.99       
-    ##  Mac - Control   0.99     0.95     1.04 0.8189
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac 413.63 0.04   378.94   451.50       
+    ##        Control 415.91 0.04   381.03   453.99       
+    ##  Mac - Control   0.99 0.02     0.95     1.04 0.8189
     ## 
     ## $`log(sVCAm1pgmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac 456.00   411.69   505.07       
-    ##        Control 459.30   414.67   508.73       
-    ##  Mac - Control   0.99     0.95     1.04 0.7387
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac 456.00 0.05   411.69   505.07       
+    ##        Control 459.30 0.05   414.67   508.73       
+    ##  Mac - Control   0.99 0.02     0.95     1.04 0.7387
     ## 
     ## $`log(isopgf2pgmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac 649.78   595.56   708.94       
-    ##        Control 626.20   573.95   683.21       
-    ##  Mac - Control   1.04     0.93     1.16 0.4896
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac 649.78 0.04   595.56   708.94       
+    ##        Control 626.20 0.04   573.95   683.21       
+    ##  Mac - Control   1.04 0.05     0.93     1.16 0.4896
     ## 
     ## $`log(MDAnmolmL)`
-    ##      Treatment emmean lower.CL upper.CL   pval
-    ##            Mac   2.09     1.78     2.46       
-    ##        Control   2.28     1.94     2.68       
-    ##  Mac - Control   0.92     0.82     1.03 0.1311
+    ##      Treatment emmean   SE lower.CL upper.CL   pval
+    ##            Mac   2.09 0.08     1.78     2.46       
+    ##        Control   2.28 0.08     1.94     2.68       
+    ##  Mac - Control   0.92 0.06     0.82     1.03 0.1311
 
 ### Examining the interaction with baseline BMI
 
 -   To examine if the effect of mac treatment may be different depending
-    on baseline BMI, a dichotomous BMI variable (\<30 and >=30) was
+    on baseline BMI, a dichotomous BMI variable (\<30 and \>=30) was
     added into the mixed model, along with its interaction with
     treatment.
 -   Marginal means were estimated for each combination of treatment and
@@ -366,7 +366,7 @@ MAC study
     treatment means (mac/control) after the back-transformation.
     -   None of these variables showed a significant interaction with
         baseline BMI, indicating that the effect of mac treatment is not
-        significantly different between BMI \<30 and >=30.
+        significantly different between BMI \<30 and \>=30.
 
 <!-- -->
 
@@ -446,7 +446,7 @@ MAC study
 
 -   To examine if the effect of mac treatment may be different depending
     on baseline waist circumference (WC), a dichotomous WC variable
-    (\<108 and >=108) was added into the mixed model, along with its
+    (\<108 and \>=108) was added into the mixed model, along with its
     interaction with treatment.
 -   Marginal means were estimated for each combination of treatment and
     baseline WC adjusted for sequence and phase, and then
@@ -455,7 +455,7 @@ MAC study
     treatment means (mac/control) after the back-transformation.
     -   None of these variables showed a significant interaction with
         baseline WC, indicating that the effect of mac treatment is not
-        significantly different between WC \<108 and >=108.
+        significantly different between WC \<108 and \>=108.
 
 <!-- -->
 
@@ -534,8 +534,8 @@ MAC study
 ### Examining the interaction with baseline % body fat
 
 -   To examine if the effect of mac treatment may be different depending
-    on baseline % body fat (BF), a dichotomous BF variable (\<43
-    and >=43) was added into the mixed model, along with its interaction
+    on baseline % body fat (BF), a dichotomous BF variable (\<43 and
+    \>=43) was added into the mixed model, along with its interaction
     with treatment.
 -   Marginal means were estimated for each combination of treatment and
     baseline BF adjusted for sequence and phase, and then
@@ -544,7 +544,7 @@ MAC study
     treatment means (mac/control) after the back-transformation.
     -   None of these variables showed a significant interaction with
         baseline BF, indicating that the effect of mac treatment is not
-        significantly different between % body fat \<43 and >=43.
+        significantly different between % body fat \<43 and \>=43.
 
 <!-- -->
 

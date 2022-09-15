@@ -14,13 +14,13 @@ search_var <- function(df, name) {
 }
 
 # Path to data file
-setwd("C:\\Users\\koda\\Dropbox\\Nutrition\\Julie Jones")
+setwd("C:\\Users\\keiji\\Dropbox\\Nutrition\\Julie Jones")
 
 # Read data ---------------------------------------------------------------
 
 # Read data, n obs = 70
-# mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
-mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
+mac0 <- read_sav("MAC Endpoint data with baseline values.sav")
+# mac0 <- read_sav("MAC Endpoint data with baseline values 102121.sav")
 
 # Fix variable names
 fixthis <- mac0 %>% search_var("8iso") %>% pull(num)
@@ -63,9 +63,9 @@ mac_fem <- mac %>%
 
 # Histograms
 mac %>% 
-  select(GlucosemgdL, InsulinuIUml, HOMA_IR) %>% 
-  pivot_longer(GlucosemgdL:HOMA_IR, names_to = "var", values_to = "value") %>% 
-  mutate(var = factor(var, levels = c("GlucosemgdL", "InsulinuIUml", "HOMA_IR"))) %>% 
+  select(GlucosemgdL, InsulinuIUml, HOMA2_IR) %>% 
+  pivot_longer(GlucosemgdL:HOMA2_IR, names_to = "var", values_to = "value") %>% 
+  mutate(var = factor(var, levels = c("GlucosemgdL", "InsulinuIUml", "HOMA2_IR"))) %>% 
   ggplot(aes(x = value)) +
   geom_histogram(bins = 15) +
   facet_wrap(~ var, scales = "free")
@@ -73,9 +73,9 @@ mac %>%
 # Profile plots by sequence group
 # pdf("plot by seq.pdf", height = 8, width = 6)
 mac %>% 
-  select(ID, Group, Phase, GlucosemgdL, InsulinuIUml, HOMA_IR) %>% 
-  pivot_longer(GlucosemgdL:HOMA_IR, names_to = "variable", values_to = "value") %>% 
-  mutate(variable = factor(variable, levels = c("GlucosemgdL", "InsulinuIUml", "HOMA_IR"))) %>% 
+  select(ID, Group, Phase, GlucosemgdL, InsulinuIUml, HOMA2_IR) %>% 
+  pivot_longer(GlucosemgdL:HOMA2_IR, names_to = "variable", values_to = "value") %>% 
+  mutate(variable = factor(variable, levels = c("GlucosemgdL", "InsulinuIUml", "HOMA2_IR"))) %>% 
   ggplot(aes(x = Phase, y = value, group = ID, color = Group)) +
   geom_line() +
   facet_grid(variable ~ Group, scales = "free") +
@@ -88,20 +88,21 @@ mac %>%
 mac_with_base <- mac %>%
   filter(Phase == 1) %>% 
   mutate(Treatment = "Baseline") %>% 
-  select(ID, Treatment, GlucosemgdLB, InsulinuIUmlB) %>% 
-  rename(GlucosemgdL = GlucosemgdLB, InsulinuIUml = InsulinuIUmlB) %>% 
-  bind_rows(select(mac, ID, Treatment, GlucosemgdL, InsulinuIUml, HOMA_IR)) %>% 
+  select(ID, Treatment, GlucosemgdLB, InsulinuIUmlB, HOMA2_IRB) %>% 
+  rename(GlucosemgdL = GlucosemgdLB, InsulinuIUml = InsulinuIUmlB, HOMA2_IR = HOMA2_IRB) %>% 
+  bind_rows(select(mac, ID, Treatment, GlucosemgdL, InsulinuIUml, HOMA2_IR)) %>% 
   mutate(Treatment = factor(Treatment))
   
+Mean <- function(x) mean(x, na.rm = TRUE)
+SD <- function(x) sd(x, na.rm = TRUE)
+
 # Mean (SD) by treatment
-tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA2_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Treatment, data = mac_with_base) %>% 
   suppressWarnings()
 
 # Mean (SD) by sequence and treatment
-Mean <- function(x) mean(x, na.rm = TRUE)
-SD <- function(x) sd(x, na.rm = TRUE)
-tabular((GlucosemgdL + InsulinuIUml + HOMA_IR) * (Mean + SD) * Format(digits = 2)  ~  
+tabular((GlucosemgdL + InsulinuIUml + HOMA2_IR) * (Mean + SD) * Format(digits = 2)  ~  
           Heading() * Group * Heading() * Treatment, data = mac) %>% 
   suppressWarnings()
 
@@ -122,15 +123,15 @@ tidy_output <- function(emm){
   
   as.data.frame(emm) %>% 
     bind_rows(delta) %>% 
-    select(-df, -SE) %>% 
+    select(-df) %>% 
     bind_cols(pval)
 }
 
 show_result <- function(emm, log = FALSE){
   emm <- emm %>% tidy_output()
-  if(log) emm <- emm %>% mutate_at(2:4, exp)
+  if(log) emm <- emm %>% mutate_at(c(2, 4:5), exp)
   emm <- emm %>% 
-    mutate_at(2:4, round, 2)
+    mutate_at(2:5, round, 2)
 }
 
 # Base model: adjusts for sequence and phase
@@ -148,7 +149,7 @@ ins_mod1 %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 ggResidpanel::resid_panel(ins_mod1, plots = "all")
 
 # HOMA-IR (log-transformed)
-homa_mod1 <- write_model(y = "log(HOMA_IR)") %>% lmer(data = mac)
+homa_mod1 <- write_model(y = "log(HOMA2_IR)") %>% lmer(data = mac)
 homa_mod1 %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 ggResidpanel::resid_panel(homa_mod1, plots="all")
 
@@ -161,10 +162,10 @@ insresis_results[[1]] <- write_model(y = "GlucosemgdL") %>%
 insresis_results[[2]] <- write_model(y = "log(InsulinuIUml)") %>% 
   lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 
-insresis_results[[3]] <- write_model(y = "log(HOMA_IR)") %>% 
+insresis_results[[3]] <- write_model(y = "log(HOMA2_IR)") %>% 
   lmer(data = mac) %>% emmeans(~Treatment) %>% show_result(log = TRUE)
 
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 
 # Checking for interactions -----------------------------------------------
@@ -220,7 +221,7 @@ ins_mod2 %>%
   show_result2(ins_mod2, log = TRUE)
 
 # HOMA-IR
-homa_mod2 <- write_model("log(HOMA_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
+homa_mod2 <- write_model("log(HOMA2_IR)", "Treatment * BaseBMI") %>% lmer(data = mac)
 homa_mod2 %>% 
   emmeans(~ Treatment + BaseBMI) %>% 
   show_result2(homa_mod2, log = TRUE)
@@ -229,7 +230,7 @@ homa_mod2 %>%
 insresis_results[[1]] <- glu_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(glu_mod2)
 insresis_results[[2]] <- ins_mod2  %>% emmeans(~Treatment + BaseBMI) %>% show_result2(ins_mod2, log = TRUE)
 insresis_results[[3]] <- homa_mod2 %>% emmeans(~Treatment + BaseBMI) %>% show_result2(homa_mod2, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 
 # Interaction with baseline WC, dichotomous
@@ -246,7 +247,7 @@ ins_mod3 %>%
   show_result2(ins_mod3, log = TRUE)
 
 # HOMA-IR
-homa_mod3 <- write_model("log(HOMA_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
+homa_mod3 <- write_model("log(HOMA2_IR)", "Treatment * BaseWC") %>% lmer(data = mac)
 homa_mod3 %>% 
   emmeans(~ Treatment + BaseWC) %>% 
   show_result2(homa_mod3, log = TRUE)
@@ -255,7 +256,7 @@ homa_mod3 %>%
 insresis_results[[1]] <- glu_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(glu_mod3)
 insresis_results[[2]] <- ins_mod3  %>% emmeans(~Treatment + BaseWC) %>% show_result2(ins_mod3, log = TRUE)
 insresis_results[[3]] <- homa_mod3 %>% emmeans(~Treatment + BaseWC) %>% show_result2(homa_mod3, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 
 # Interaction with baseline % body fat, dichotomous
@@ -272,7 +273,7 @@ ins_mod4 %>%
   show_result2(ins_mod4, log = TRUE)
 
 # HOMA-IR
-homa_mod4 <- write_model("log(HOMA_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
+homa_mod4 <- write_model("log(HOMA2_IR)", "Treatment * BaseBF") %>% lmer(data = mac)
 homa_mod4 %>% 
   emmeans(~ Treatment + BaseBF) %>% 
   show_result2(homa_mod4, log = TRUE)
@@ -281,7 +282,7 @@ homa_mod4 %>%
 insresis_results[[1]] <- glu_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(glu_mod4)
 insresis_results[[2]] <- ins_mod4  %>% emmeans(~Treatment + BaseBF) %>% show_result2(ins_mod4, log = TRUE)
 insresis_results[[3]] <- homa_mod4 %>% emmeans(~Treatment + BaseBF) %>% show_result2(homa_mod4, log = TRUE)
-names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA_IR)")
+names(insresis_results) <- c("GlucosemgdL", "log(InsulinuIUml)", "log(HOMA2_IR)")
 insresis_results %>% print(row.names = FALSE)
 
 # Checking previous results -----------------------------------------------
@@ -293,7 +294,7 @@ lipid_results <- function(var){
   suppressWarnings() %>% 
   emmeans(~ Treatment) %>% 
   tidy_output() %>% 
-  mutate_at(2:4, round, 2)
+  mutate_at(c(2, 4:5), round, 2)
 }
 
 yvars <- c("CholmgdL", "LDLmgdL")
@@ -457,3 +458,42 @@ all_inflam_results4 <- yvars %>% map(inflam_results)
 names(all_inflam_results4) <- yvars
 all_inflam_results4 %>% 
   print(row.names = FALSE)
+
+# Check Table 4
+adip_vars <- c("Weight", 
+               "BMI", 
+               "WC", 
+               "TBWTotalBodyWater", 
+               "DLMDryLeanMass", 
+               "LBMLeanBodyMass", 
+               "SMMSkeletalMuscleMass", 
+               "BFMBodyFatMass", 
+               "PBFPercentBodyFat")
+
+tab4func <- \(x){
+  write_model(y = x) %>% 
+    lmer(data = mac) %>% 
+    emmeans(~Treatment) %>% 
+    show_result()
+}
+
+results <- adip_vars %>% 
+  lapply(tab4func) %>% 
+  setNames(adip_vars) %>% 
+  lapply(\(x) slice(x, 3)) %>% 
+  do.call(rbind, .)
+
+results$var <- c("Weight (kg)", "BMI", "WC (cm)", "TBW (L)", "DLM (kg)", "LBM (kg)", "SMM (kg)", "Fat mass (kg)", "Body fat (%)")
+
+pdf("Fig for Tab4.pdf", width = 5, height = 5)
+results %>% 
+  ggplot(aes(x = var, y = emmean)) + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "darkgray") +
+  geom_point(shape = 15, size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.25) +
+  ylim(min = -1, max = 1) + 
+  coord_flip() + 
+  theme(legend.position = "none") +
+  labs(x = "", y = "Estimated mean difference (Mac - Control)")
+dev.off()
+
