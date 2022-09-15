@@ -483,7 +483,10 @@ results <- adip_vars %>%
   lapply(\(x) slice(x, 3)) %>% 
   do.call(rbind, .)
 
-results$var <- c("Weight (kg)", "BMI", "WC (cm)", "TBW (L)", "DLM (kg)", "LBM (kg)", "SMM (kg)", "Fat mass (kg)", "Body fat (%)")
+var_labels <- c("Weight (kg)", "BMI", "WC (cm)", "TBW (L)", "DLM (kg)", "LBM (kg)", "SMM (kg)", "Fat mass (kg)", "Body fat (%)")
+results$var <- var_labels
+results <- results %>% 
+  mutate(var = factor(var, labels = var_labels, levels = var_labels))
 
 pdf("Fig for Tab4.pdf", width = 5, height = 5)
 results %>% 
@@ -493,6 +496,7 @@ results %>%
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.25) +
   ylim(min = -1, max = 1) + 
   coord_flip() + 
+  scale_x_discrete(limits = rev(levels(results$var))) +
   theme(legend.position = "none") +
   labs(x = "", y = "Estimated mean difference (Mac - Control)")
 dev.off()
